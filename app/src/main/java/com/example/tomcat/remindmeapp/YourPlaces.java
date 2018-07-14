@@ -29,6 +29,8 @@ public class YourPlaces extends Fragment {
         View view = inflater.inflate(R.layout.your_places_fragment, container, false);
 
 
+
+
         return view;
     }
 }
