@@ -2,6 +2,7 @@ package com.example.tomcat.remindmeapp;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,7 +41,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         return new ViewHolder(view);
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener{
         /*@BindView(R.id.tv_name)
         TextView remNameTxt;*/
         //@BindView(R.id.cake_photo)
@@ -51,6 +52,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         ViewHolder(View view) {
             super(view);
             view.setOnClickListener(this);
+            view.setOnLongClickListener(this);
             //ButterKnife.bind(this, view);
             remNameTxt = view.findViewById(R.id.tv_name);
         }
@@ -59,6 +61,15 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         public void onClick(View v) {
             int adapterPosition = getAdapterPosition();
             mClickHandler.onClick(adapterPosition);
+        }
+
+
+        @Override
+        public boolean onLongClick(View view) {
+            int adapterPosition = getAdapterPosition();
+            mClickHandler.onClick(adapterPosition);
+            Log.d("RemFrag", "Long" );
+            return false;
         }
     }
 

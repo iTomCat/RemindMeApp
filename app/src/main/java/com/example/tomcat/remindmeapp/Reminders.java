@@ -7,6 +7,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.ShareCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,24 +43,10 @@ public class Reminders extends Fragment implements
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.reminders_fragment, container, false);
 
-        /*getActivity().findViewById(R.id.fab_main).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Log.d("TestOK", "Button");
-
-                ScaleAnimation anim = new ScaleAnimation(0,1,0,1, 1, 0.5f, 1, 0.5f);
-                anim.setFillBefore(true);
-                anim.setFillAfter(true);
-                anim.setFillEnabled(true);
-                anim.setDuration(300);
-                anim.setInterpolator(new OvershootInterpolator());
-                getActivity().findViewById(R.id.fab_main).startAnimation(anim);
-            }
-        });*/
 
 
         mReminders = new ArrayList<>();
-        for (int i = 0; i < 15; i++) {
+        for (int i = 0; i < 3; i++) {
 
             Reminder movie = new Reminder();
 
@@ -80,10 +67,56 @@ public class Reminders extends Fragment implements
 
         ReminderAdapter adapter = new ReminderAdapter(mReminders, mClickHandler);
 
-        RecyclerView recyclerView = view.findViewById(R.id.recycler_view_reminders);
-        recyclerView.setHasFixedSize(true);
-        recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setAdapter(adapter);
+        RecyclerView mRecyclerView = view.findViewById(R.id.recycler_view_reminders);
+        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setAdapter(adapter);
+
+        /*
+         Add a touch helper to the RecyclerView to recognize when a user swipes to delete an item.
+         An ItemTouchHelper enables touch behavior (like swipe and move) on each ViewHolder,
+         and uses callbacks to signal when a user is performing these actions.
+         */
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                Log.d("RemFrag", "Moved " );
+                return false;
+            }
+
+            @Override
+            public boolean isLongPressDragEnabled() {
+                Log.d("RemFrag", "Long Presed " );
+                return super.isLongPressDragEnabled();
+            }
+
+            // Called when a user swipes left or right on a ViewHolder
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+                // Here is where you'll implement swipe to delete
+                Log.d("RemFrag", "Swipped " + swipeDir);
+
+            }
+
+
+           /* @Override
+            public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+                if (viewHolder.getItemViewType() == ITEM_TYPE_ACTION_WIDTH_NO_SPRING) return 0;
+                return makeMovementFlags(ItemTouchHelper.UP|ItemTouchHelper.DOWN,
+                        ItemTouchHelper.START|ItemTouchHelper.END);
+            }*/
+
+          /*  @Override
+            public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+                if (viewHolder instanceof ReminderAdapter.ViewHolder){
+                    Log.d("RemFrag", "aaaaa" );
+                    return 0;
+                }
+                Log.d("RemFrag", "bbbb" );
+                return super.getSwipeDirs(recyclerView, viewHolder);
+            }
+            */
+        }).attachToRecyclerView(mRecyclerView);
 
 
         return view;

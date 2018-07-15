@@ -13,7 +13,8 @@
     <dimen name="tool_bar_height">128dp</dimen>
 
     <!-- Row View -->
-    <dimen name="card_height">220dp</dimen>
+    <dimen name="my_card_height">110dp</dimen>
+    <dimen name="my_card_marigins">8dp</dimen>
 
 
 </resources>

@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.tomcat.remindmeapp">
+
+    <uses-permission android:name="com.example.tomcat.remindmeapp.TERMS_READ" />
 
     <application
         android:allowBackup="true"
@@ -16,6 +19,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- AddReminderActivity -->
+        <activity
+            android:name="com.example.tomcat.remindmeapp.AddReminderActivity"
+            android:label="@string/add_new_reminder" />
+
+        <provider
+            android:authorities="com.example.tomcat.remindmeapp"
+            android:name="com.example.tomcat.remindmeapp.data.AppContentProvider"
+            android:exported="true"
+            tools:ignore="ExportedContentProvider">
+        </provider>
+
+
     </application>
 
 </manifest>

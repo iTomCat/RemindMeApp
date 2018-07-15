@@ -1,7 +1,9 @@
 package com.example.tomcat.remindmeapp;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.Parcelable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.TabLayout;
@@ -11,6 +13,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.transition.Explode;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
@@ -54,18 +57,23 @@ public class MainActivity extends AppCompatActivity implements
 
         //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        ViewPager viewPager = findViewById(R.id.viewpager);
+        CustomViewPager viewPager = findViewById(R.id.viewpager);
+        viewPager.setPagingEnabled(false);
         setupViewPager(viewPager);
 
         TabLayout tabLayout = findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
+
 
         viewPageListener(viewPager);
     }
 
     public void plusFabButton(View view) {
         if (currentPage == 0){ // ------------------------------------------- + action for Reminders
-            Log.d("Pagery", "+ Reminders");
+            Intent addReminderIntent = new Intent(MainActivity.this,
+                    AddReminderActivity.class);
+            startActivity(addReminderIntent);
+
         }else {  // ------------------------------------------------------------ + action for Places
             Log.d("Pagery", "+ Places");
         }
@@ -80,21 +88,31 @@ public class MainActivity extends AppCompatActivity implements
         reminderLogo.requestLayout();
     }
 
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
     // ********************************************************************************************* Page Adapter
     private void setupViewPager(ViewPager viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFragment(new Reminders(), getString(R.string.reminders));
-        //adapter.addFragment(new RemindersArchived(), getString(R.string.arch_rem));
         adapter.addFragment(new YourPlaces(), getString(R.string.your_places));
         viewPager.setAdapter(adapter);
     }
 
-    class ViewPagerAdapter extends FragmentPagerAdapter {
+    class ViewPagerAdapter extends FragmentPagerAdapter{
         private final List<Fragment> mFragmentList = new ArrayList<>();
         private final List<String> mFragmentTitleList = new ArrayList<>();
 
         ViewPagerAdapter(FragmentManager manager) {
             super(manager);
+        }
+        @Override
+        public void restoreState(Parcelable state, ClassLoader loader) {
+            super.restoreState(state, loader);
         }
 
         @Override
@@ -116,11 +134,10 @@ public class MainActivity extends AppCompatActivity implements
         public CharSequence getPageTitle(int position) {
             return mFragmentTitleList.get(position);
         }
-
     }
 
     // --------------------------------------------------------------------------------------------- View Pager Listener
-    private void viewPageListener(ViewPager viewPager){
+    private void viewPageListener(final ViewPager viewPager){
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {

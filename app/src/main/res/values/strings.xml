@@ -1,19 +1,27 @@
 <resources>
     <string name="app_name">RemindMeApp</string>
 
+    <!-- Content Description -->
+    <string name="fab_plus_rem">Add Button</string>
+    <string name="logo_image">App Logo</string>
+    <string name="empty_text">...</string>
 
     <!-- Tabs -->
     <string name="reminders">Reminders</string>
 
     <string name="your_places">Your Places</string>
 
+
+    <!--Add Reminder -->
+    <string name="add_new_reminder">Add a New Reminder</string>
+
+
+
+
+
+
     <!-- No Used -->
     <string name="act_rem">Active reminders</string>
     <string name="arch_rem">Archived reminders</string>
-
-    <!-- Content Description -->
-    <string name="fab_plus_rem">Add Button</string>
-    <string name="logo_image">App Logo</string>
-    <string name="empty_text">...</string>
 
 </resources>
