@@ -5,15 +5,37 @@
     <string name="fab_plus_rem">Add Button</string>
     <string name="logo_image">App Logo</string>
     <string name="empty_text">...</string>
+    <string name="button_in_out">Button You go in or out</string>
+    <string name="button_in">Button in</string>
+    <string name="button_out">Button out</string>
+    <string name="add_place_btn">Add Place Buttom</string>
+    <string name="edit_icon">Edit Icon</string>
 
     <!-- Tabs -->
     <string name="reminders">Reminders</string>
-
     <string name="your_places">Your Places</string>
 
 
     <!--Add Reminder -->
     <string name="add_new_reminder">Add a New Reminder</string>
+    <string name="in">When you arrive</string>
+    <string name="out">When you leave</string>
+    <string name="select_place">Select place</string>
+    <string name="remind_me_to">Remind me to:</string>
+    <string name="remind_me">Remind me:</string>
+
+    <string name="eg_0">E.g. Buy milk</string>
+    <string name="eg_1">E.g. Feed the cat</string>
+    <string name="eg_2">E.g. Take umbrella</string>
+    <string name="eg_3">E.g. Send message to Peter</string>
+
+    <string name="day_0">mon</string>
+    <string name="day_1">tue</string>
+    <string name="day_2">wed</string>
+    <string name="day_3">thu</string>
+    <string name="day_4">fri</string>
+    <string name="day_5">sat</string>
+    <string name="day_6">sun</string>
 
 
 

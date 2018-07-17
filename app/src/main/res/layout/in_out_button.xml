@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:layout_editor_absoluteY="25dp">
+
+
+    <ImageView
+        android:id="@+id/in_out_image"
+        android:layout_width="0dp"
+        android:layout_height="55dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/in_place"
+        android:contentDescription="@string/button_in_out"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <android.support.constraint.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_percent="0.5" />
+
+    <TextView
+        android:id="@+id/in_tv"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="8dp"
+        android:maxLines="2"
+        android:text="@string/in"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="@+id/in_out_image"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintStart_toStartOf="@+id/in_out_image"
+        app:layout_constraintTop_toTopOf="@+id/in_out_image" />
+
+
+    <TextView
+        android:id="@+id/out_tv"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginStart="18dp"
+        android:layout_marginTop="8dp"
+        android:ellipsize="none"
+        android:maxLines="2"
+        android:text="@string/out"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="@+id/in_out_image"
+        app:layout_constraintEnd_toEndOf="@+id/in_out_image"
+        app:layout_constraintStart_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="@+id/in_out_image" />
+
+    <ImageView
+        android:id="@+id/in_btn"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="0"
+        app:layout_constraintBottom_toBottomOf="@+id/in_out_image"
+        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintStart_toStartOf="@+id/in_out_image"
+        app:layout_constraintTop_toTopOf="@+id/in_out_image"
+        app:srcCompat="@color/colorAccent"
+        android:contentDescription="@string/button_in" />
+
+
+    <ImageView
+        android:id="@+id/out_btn"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:alpha="0"
+        android:contentDescription="@string/button_out"
+        app:layout_constraintBottom_toBottomOf="@+id/in_out_image"
+        app:layout_constraintEnd_toEndOf="@+id/in_out_image"
+        app:layout_constraintStart_toStartOf="@+id/guideline"
+        app:layout_constraintTop_toTopOf="@+id/in_out_image"
+        app:srcCompat="@color/colorAccent" />
+
+</android.support.constraint.ConstraintLayout>

@@ -23,7 +23,7 @@
         <!-- AddReminderActivity -->
         <activity
             android:name="com.example.tomcat.remindmeapp.AddReminderActivity"
-            android:label="@string/add_new_reminder" />
+            />
 
         <provider
             android:authorities="com.example.tomcat.remindmeapp"

@@ -1,7 +1,6 @@
 package com.example.tomcat.remindmeapp;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Parcelable;
 import android.support.design.widget.AppBarLayout;
@@ -13,7 +12,6 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.transition.Explode;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
@@ -29,7 +27,9 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity implements
         AppBarLayout.OnOffsetChangedListener{
 
+    public static Typeface robotoLightFont;
     public static Typeface robotoFont;
+
     private int currentPage = 0;
     //@BindView(R.id.collapsing_toolbar_layout) CollapsingToolbarLayout toolbarLayout;
     //@BindView(R.id.app_bar_layout) AppBarLayout appBarLayout;
@@ -43,10 +43,11 @@ public class MainActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
-        robotoFont = Typeface.createFromAsset(this.getAssets(), "fonts/Roboto-Light.ttf");
+        robotoLightFont = Typeface.createFromAsset(this.getAssets(), "fonts/Roboto-Light.ttf");
+        robotoFont = Typeface.createFromAsset(this.getAssets(), "fonts/Roboto-Regular.ttf");
 
-        CollapsingToolbarLayout toolbarLayout = findViewById(R.id.collapsing_toolbar_layout);
-        toolbarLayout.setExpandedTitleColor(Color.BLUE);
+        //CollapsingToolbarLayout toolbarLayout = findViewById(R.id.collapsing_toolbar_layout);
+        //toolbarLayout.setExpandedTitleColor(Color.BLUE);
 
         AppBarLayout appBarLayout = findViewById(R.id.app_bar_layout);
         appBarLayout.addOnOffsetChangedListener(this);

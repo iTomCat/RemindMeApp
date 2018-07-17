@@ -6,14 +6,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.example.tomcat.remindmeapp.models.Reminder;
 
 import java.util.ArrayList;
-
-import butterknife.BindView;
-import butterknife.ButterKnife;
 
 /**
  * Adapter for Reminders on Main View
@@ -47,7 +43,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         //@BindView(R.id.cake_photo)
         //ImageView cakeView;
 
-        com.example.tomcat.remindmeapp.utilitis.TextViewRoboto remNameTxt;
+        com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight remNameTxt;
 
         ViewHolder(View view) {
             super(view);

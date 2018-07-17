@@ -16,5 +16,7 @@
     <dimen name="my_card_height">110dp</dimen>
     <dimen name="my_card_marigins">8dp</dimen>
 
+    <dimen name="anim_dist">20dp</dimen>
+
 
 </resources>

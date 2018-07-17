@@ -6,12 +6,23 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <!-- InputEditText -->
+        <item name="colorControlNormal">@color/colorPrimary</item>
+        <item name="colorControlActivated">@color/colorPrimary</item>
+        <item name="colorControlHighlight">@color/colorPrimary</item>
+
     </style>
 
 
     <!-- NavigationTab -->
     <style name="MyTabLayoutTextAppearance" parent="TextAppearance.Design.Tab">
         <item name="android:textSize">16sp</item>
-</style>
+    </style>
+
+    <!-- Hint colcor InputEditText -->
+    <style name="MyInputAppearance" parent="TextAppearance.AppCompat">
+        <item name="android:textColor">@android:color/darker_gray</item>
+    </style>
 
 </resources>
