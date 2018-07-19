@@ -10,6 +10,7 @@
     <string name="button_out">Button out</string>
     <string name="add_place_btn">Add Place Buttom</string>
     <string name="edit_icon">Edit Icon</string>
+    <string name="pick_day">Pick a day of the week</string>
 
     <!-- Tabs -->
     <string name="reminders">Reminders</string>
@@ -18,24 +19,36 @@
 
     <!--Add Reminder -->
     <string name="add_new_reminder">Add a New Reminder</string>
+    <string name="add">Add</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
     <string name="in">When you arrive</string>
     <string name="out">When you leave</string>
     <string name="select_place">Select place</string>
     <string name="remind_me_to">Remind me to:</string>
-    <string name="remind_me">Remind me:</string>
+    <string name="notes">Notes</string>
+
+    <string name="remind_once">Remind me only once</string>
+    <string name="remind_always">Always remind me</string>
+    <string name="remind_week">Remind me on selected days of the week</string>
+    <string name="remind_me_on">Remind me on:</string>
+
+    <string name="action">Action:</string>
+    <string name="act_remind_only">remind only</string>
+    <string name="actn_send_sms">send SMS</string>
 
     <string name="eg_0">E.g. Buy milk</string>
     <string name="eg_1">E.g. Feed the cat</string>
     <string name="eg_2">E.g. Take umbrella</string>
     <string name="eg_3">E.g. Send message to Peter</string>
 
-    <string name="day_0">mon</string>
-    <string name="day_1">tue</string>
-    <string name="day_2">wed</string>
-    <string name="day_3">thu</string>
-    <string name="day_4">fri</string>
-    <string name="day_5">sat</string>
-    <string name="day_6">sun</string>
+    <string name="day_0">MON</string>
+    <string name="day_1">TUE</string>
+    <string name="day_2">WED</string>
+    <string name="day_3">THU</string>
+    <string name="day_4">FRI</string>
+    <string name="day_5">SAT</string>
+    <string name="day_6">SUN</string>
 
 
 
