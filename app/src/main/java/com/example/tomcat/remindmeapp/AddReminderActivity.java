@@ -14,7 +14,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Spannable;
 import android.text.SpannableString;
-
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
@@ -54,8 +53,10 @@ public class AddReminderActivity extends AppCompatActivity{
     final static int WHEN_GET_OUT = 1;
     static int CURRENT_STATE = WHEN_ARRIVE;
 
-    final static int REMINDER_SETTINGS = 2; //Cyclic or one-time reminder settings
-    final static int REMINDER_ACTIONS = 1; // Action related to the reminder settings E.g. sending SMS
+    final static String REMINDER_SETTINGS = "reminder"; //Cyclic or one-time reminder settings
+    final static String REMINDER_ACTIONS = "actions"; // Action related to the reminder settings E.g. sending SMS
+
+    static int CURRENT_SETTINGS = -1;
 
 
     @Override
@@ -159,10 +160,6 @@ public class AddReminderActivity extends AppCompatActivity{
         setSettingsAndActions();
     }
 
-    public void addReminder(View view) {
-        Log.d("AddRem", "Click: ");
-    }
-
 
     //********************************************************************************************** Arrive / Leave Buttons Listener
     private class arriveOrOutListener implements View.OnClickListener {
@@ -177,13 +174,13 @@ public class AddReminderActivity extends AppCompatActivity{
     private class actionsAndSettingsListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            int buttonTag = (int) v.getTag();
+            String buttonTag = (String) v.getTag();
 
-            if (buttonTag == REMINDER_SETTINGS) {
+            if (buttonTag.equals(REMINDER_SETTINGS)) {
                 Log.d("AddRem", "Click IN");
                 showDialogSettings();
 
-            }else if (buttonTag == REMINDER_ACTIONS){
+            }else if (buttonTag.equals(REMINDER_ACTIONS)){
                 Log.d("AddRem", "Click OUT");
             }
         }
@@ -192,16 +189,17 @@ public class AddReminderActivity extends AppCompatActivity{
 
     // --------------------------------------------------------------------------------------------- Show Dialog Shake Info and Dim screen
     private void showDialogSettings() {
+      if(CURRENT_SETTINGS == -1) CURRENT_SETTINGS = 250; // Default settings > BIN: 11111100
       DialogFragment newFragment = new DialogSettings();
-        //Bundle args = new Bundle();
-        //args.putInt("title", 1);
-        //newFragment.setArguments(args);
-        newFragment.show(getSupportFragmentManager(), "dialog");
+      Bundle args = new Bundle();
+      args.putInt(REMINDER_SETTINGS, CURRENT_SETTINGS);
+      newFragment.setArguments(args);
+      newFragment.show(getSupportFragmentManager(), "dialog");
     }
 
-    // get from Dialogs
-    public void doPositiveClick() {
-        // Do stuff here.
+    // Get data from Dialogs
+    public void doPositiveClick(int dataSettings) {
+        CURRENT_SETTINGS = dataSettings;
         Log.d("AddRem", " Tadaaaaa222222");
     }
 

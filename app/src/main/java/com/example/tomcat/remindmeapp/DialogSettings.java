@@ -3,6 +3,7 @@ package com.example.tomcat.remindmeapp;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
@@ -20,15 +21,14 @@ import android.widget.TextView;
  */
 
 public class DialogSettings extends DialogFragment {
-    //private RadioButton radd;
-   private LinearLayout reviewsLayout;
 
-    private int SETTINGS_DATA;
+    private static final String TAG = "DataSettings";
+    private LinearLayout reviewsLayout;
+    private int DATA_SETTINGS;
 
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        //int title = getArguments().getInt("title"); // get from bundle
 
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         final ViewGroup nullParent = null;
@@ -47,91 +47,28 @@ public class DialogSettings extends DialogFragment {
         rad3.setOnClickListener(new radioButtonsListener());
         rad3.setId(AddReminderActivity.REMIND_ON_SELECTED_DAYS);
 
-
-        //44
-
         resetBits();
-        //SETTINGS_DATA = 44;
-        SETTINGS_DATA = 514;
 
-        //teraz po wejsciu odpowiedzni select radio button
-        Log.d("AddRem", "START Data Decr: " + SETTINGS_DATA + "  BIN: "
-                + Integer.toBinaryString(SETTINGS_DATA));showHideWeekDays(44);
+        // Get data from Bundle
+        DATA_SETTINGS = getArguments().getInt(AddReminderActivity.REMINDER_SETTINGS);
 
-
-
-        if ((SETTINGS_DATA & AddReminderActivity.REMIND_ONCE) > 0) {
-            Log.d("AddRem", "nono " + SETTINGS_DATA);
-        }
-
-        if ((SETTINGS_DATA & AddReminderActivity.REMIND_ON_SELECTED_DAYS) > 0) {
-            Log.d("AddRem", "OKOKOKOKOK " + SETTINGS_DATA);
-        }
-
-
-
-        /*switch(44) {
-                case (AddReminderActivity.REMIND_ONCE):
-                    Log.d("AddRem", "nono " + SETTINGS_DATA);
-                    break;
-                case (AddReminderActivity.REMIND_ALWAYS):
-                    Log.d("AddRem", "nono " + SETTINGS_DATA);
-                    break;
-                case (AddReminderActivity.REMIND_ON_SELECTED_DAYS):
-                    Log.d("AddRem", "OKOKOKOKOK " + SETTINGS_DATA);
-                    break;
-            }*/
-
-
-       /* for(int i=0; i<=6; i++) {
-
-            int currDay = AddReminderActivity.WEEK_DAYS[i];
-            if ((SETTINGS_DATA & AddReminderActivity.REMIND_ON_SELECTED_DAYS) > 0) {
-                Log.d("AddRem", "OKOKOKOKOK " + SETTINGS_DATA);
-            }
-        }*/
-
-
-            //dayColorSettings(weekView);
-
-
-
-
-
-
-
-
-
+        setRadioButtons(view);
         addDaysOfTheWeek();
 
-
-
-        // ustawanie odpowiedzniego radiobuttona
-        for(int i=1; i<=AddReminderActivity.REMIND_ON_SELECTED_DAYS; i++) {
-            final RadioGroup rg = view.findViewById(R.id.radio_group);
-            RadioButton aa = rg.findViewById(i);
-            if(((SETTINGS_DATA & i) >0) && (aa != null)){
-               // RadioButton aa = rg.findViewById(i);
-                //int nn = aa.getResources();
-               rg.check(i);
-                Log.d("AddRem", "Radioooooooooo " + aa + "  i " + i);
-            }
-
-
-        }
-
-
-       // --------------------------------------------------------------------Positive / Neg Buttons
+       // -------------------------------------------------------------------------- Positive Button
         builder.setView(view);
         //builder.setTitle("Title");
         builder.setPositiveButton(getString(R.string.ok),
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
+                        // Set data to Activity
+                        ((AddReminderActivity) getActivity()).doPositiveClick(DATA_SETTINGS);
                         getDialog().dismiss();
                     }
                 }
         );
 
+        // ------------------------------------------------------------------------- Negative Button
         builder.setNegativeButton(getString(R.string.cancel),
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
@@ -142,41 +79,41 @@ public class DialogSettings extends DialogFragment {
         return builder.create();
     }
 
+    // ********************************************************************************************* Set RadioButtons
+    private void setRadioButtons(View view){
+        for(int currData=1; currData<=AddReminderActivity.REMIND_ON_SELECTED_DAYS; currData++) {
+            final RadioGroup rg = view.findViewById(R.id.radio_group);
+            RadioButton aa = rg.findViewById(currData);
+            if(((DATA_SETTINGS & currData) >0) && (aa != null)){
+                rg.check(currData);
+                showHideWeekDays(currData);
+            }
+        }
+    }
+
     //********************************************************************************************** Radio Buttons Listener
     private class radioButtonsListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
             int selOption = v.getId();
             resetBits();
-            SETTINGS_DATA = SETTINGS_DATA + selOption;
+            DATA_SETTINGS = DATA_SETTINGS + selOption;
             showHideWeekDays(selOption);
 
-            Log.d("AddRem", "Data Decr: " + SETTINGS_DATA + "  BIN: "
-                    + Integer.toBinaryString(SETTINGS_DATA));
-
-            /*switch(selOption) {
-                case (AddReminderActivity.REMIND_ONCE):
-                   //
-                    break;
-                case (AddReminderActivity.REMIND_ALWAYS):
-                    //
-                    break;
-                case (AddReminderActivity.REMIND_ON_SELECTED_DAYS):
-                    //
-                    break;
-            }*/
+            Log.d(TAG, "Data: " + DATA_SETTINGS
+                    + "  BIN: " + Integer.toBinaryString(DATA_SETTINGS));
         }
     }
     
     private void resetBits(){
-        if ((SETTINGS_DATA & AddReminderActivity.REMIND_ONCE) > 0) {
-            SETTINGS_DATA = SETTINGS_DATA - AddReminderActivity.REMIND_ONCE;
+        if ((DATA_SETTINGS & AddReminderActivity.REMIND_ONCE) > 0) {
+            DATA_SETTINGS = DATA_SETTINGS - AddReminderActivity.REMIND_ONCE;
         }
-        if ((SETTINGS_DATA & AddReminderActivity.REMIND_ALWAYS) > 0) {
-            SETTINGS_DATA = SETTINGS_DATA - AddReminderActivity.REMIND_ALWAYS;
+        if ((DATA_SETTINGS & AddReminderActivity.REMIND_ALWAYS) > 0) {
+            DATA_SETTINGS = DATA_SETTINGS - AddReminderActivity.REMIND_ALWAYS;
         }
-        if ((SETTINGS_DATA & AddReminderActivity.REMIND_ON_SELECTED_DAYS) > 0) {
-            SETTINGS_DATA = SETTINGS_DATA - AddReminderActivity.REMIND_ON_SELECTED_DAYS;
+        if ((DATA_SETTINGS & AddReminderActivity.REMIND_ON_SELECTED_DAYS) > 0) {
+            DATA_SETTINGS = DATA_SETTINGS - AddReminderActivity.REMIND_ON_SELECTED_DAYS;
         }
     }
 
@@ -190,29 +127,22 @@ public class DialogSettings extends DialogFragment {
                 v.setSelected(true);
             }
 
-
-            // ------------------------------------------------------------------------ Setting Data
+            // ----------------------------------------------------------------------  Data Settings
             if(v.isSelected()){
-                SETTINGS_DATA = SETTINGS_DATA +  v.getId();
-                Log.d("AddRem", "Data Incr: " + SETTINGS_DATA + "  BIN: "
-                        + Integer.toBinaryString(SETTINGS_DATA));
-            }else{
-                if ((SETTINGS_DATA & v.getId()) > 0) {
-                    SETTINGS_DATA = SETTINGS_DATA -  v.getId();
-                }
-
-                Log.d("AddRem", "Data Decr: " + SETTINGS_DATA + "  BIN: "
-                        + Integer.toBinaryString(SETTINGS_DATA));
+                DATA_SETTINGS = DATA_SETTINGS +  v.getId();
+            }else if ((DATA_SETTINGS & v.getId()) > 0){
+                DATA_SETTINGS = DATA_SETTINGS -  v.getId();
             }
 
+            Log.d(TAG, "Data: " + DATA_SETTINGS
+                    + "  BIN: " + Integer.toBinaryString(DATA_SETTINGS));
+
             dayColorSettings(v);
-            //dayColorSettings(v);
         }
     }
 
     // --------------------------------------------------------------------------------------------- Adding Week Days to Layout
     private void addDaysOfTheWeek(){
-        //reviewsLayout = view.findViewById(R.id.week_days_layout);
         boolean isSelected;
 
         for(int i=0; i<=6; i++) {
@@ -220,7 +150,7 @@ public class DialogSettings extends DialogFragment {
 
             // Read states
             int currDay = AddReminderActivity.WEEK_DAYS[i];
-            isSelected = (SETTINGS_DATA & currDay) > 0;
+            isSelected = (DATA_SETTINGS & currDay) > 0;
 
             weekView.setSelected(isSelected);
             TextView day = weekView.findViewById(R.id.day_name);
@@ -250,34 +180,8 @@ public class DialogSettings extends DialogFragment {
         }
     }
 
-    /*// ---------------------------------------------------------------------------------------------  Displaying the selected days of the week and setting data
-    private void dayColorSettings(View selectedView){
-        ImageView curr_day_circle = selectedView.findViewById(R.id.day_circle_iv);
-
-        if(selectedView.isSelected()){
-            curr_day_circle.setColorFilter(getResources().getColor(R.color.colorPrimary));
-            selectedView.setSelected(true);
-
-           SETTINGS_DATA = SETTINGS_DATA +  selectedView.getId();
-
-            Log.d("AddRem", "Data Incr: " + SETTINGS_DATA + "  BIN: "
-                    + Integer.toBinaryString(SETTINGS_DATA));
-
-        }else{
-            curr_day_circle.setColorFilter(getResources().getColor(R.color.light_gray));
-            selectedView.setSelected(false);
-
-            if ((SETTINGS_DATA & selectedView.getId()) > 0) {
-                SETTINGS_DATA = SETTINGS_DATA -  selectedView.getId();
-            }
-
-            Log.d("AddRem", "Data Decr: " + SETTINGS_DATA + "  BIN: "
-                    + Integer.toBinaryString(SETTINGS_DATA));
-        }
-    }*/
-
     private void showHideWeekDays(int selOption){
-        boolean showDaysButtons;
+        final boolean showDaysButtons;
         if(selOption == AddReminderActivity.REMIND_ON_SELECTED_DAYS){
             showDaysButtons = true;
             reviewsLayout.setAlpha(1f);
@@ -286,33 +190,19 @@ public class DialogSettings extends DialogFragment {
             reviewsLayout.setAlpha(0.2f);
         }
 
-        for ( int i = 0; i < reviewsLayout.getChildCount();  i++ ){
-            View view2 = reviewsLayout.getChildAt(i);
-            view2.setEnabled(showDaysButtons);
-        }
+        Handler mHandler = new Handler();
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                disableDaysButtons(showDaysButtons);
+            }
+        }, 200);
     }
 
-   /* @NonNull
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.dialog_settings, container, true);
-
-
-        //------------------------------------------------- Listener na key Back - zamyka Fragment z listą
-        getDialog().setOnKeyListener(new Dialog.OnKeyListener() {
-            @Override
-            public boolean onKey(DialogInterface dialog, int keyCode,
-                                 KeyEvent event) {
-                if (keyCode == KeyEvent.KEYCODE_BACK) {
-                    getDialog().dismiss();
-                    return true;
-                }
-                return false;
-            }
-        });
-        return view;
-    }*/
-
-
+    private void disableDaysButtons(boolean showDaysButtons){
+        for ( int i = 0; i < reviewsLayout.getChildCount();  i++ ){
+            View currView = reviewsLayout.getChildAt(i);
+            currView.setEnabled(showDaysButtons);
+        }
+    }
 }
