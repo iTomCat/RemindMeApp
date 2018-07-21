@@ -62,7 +62,7 @@ public class DialogSettings extends DialogFragment {
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         // Set data to Activity
-                        ((AddReminderActivity) getActivity()).doPositiveClick(DATA_SETTINGS);
+                        ((AddReminderActivity) getActivity()).onSettingsChanges(DATA_SETTINGS);
                         getDialog().dismiss();
                     }
                 }
@@ -97,7 +97,7 @@ public class DialogSettings extends DialogFragment {
         public void onClick(View v) {
             int selOption = v.getId();
             resetBits();
-            DATA_SETTINGS = DATA_SETTINGS + selOption;
+            DATA_SETTINGS += selOption;
             showHideWeekDays(selOption);
 
             Log.d(TAG, "Data: " + DATA_SETTINGS
@@ -107,13 +107,13 @@ public class DialogSettings extends DialogFragment {
     
     private void resetBits(){
         if ((DATA_SETTINGS & AddReminderActivity.REMIND_ONCE) > 0) {
-            DATA_SETTINGS = DATA_SETTINGS - AddReminderActivity.REMIND_ONCE;
+            DATA_SETTINGS -= AddReminderActivity.REMIND_ONCE;
         }
         if ((DATA_SETTINGS & AddReminderActivity.REMIND_ALWAYS) > 0) {
-            DATA_SETTINGS = DATA_SETTINGS - AddReminderActivity.REMIND_ALWAYS;
+            DATA_SETTINGS -= AddReminderActivity.REMIND_ALWAYS;
         }
         if ((DATA_SETTINGS & AddReminderActivity.REMIND_ON_SELECTED_DAYS) > 0) {
-            DATA_SETTINGS = DATA_SETTINGS - AddReminderActivity.REMIND_ON_SELECTED_DAYS;
+            DATA_SETTINGS -= AddReminderActivity.REMIND_ON_SELECTED_DAYS;
         }
     }
 
@@ -129,9 +129,9 @@ public class DialogSettings extends DialogFragment {
 
             // ----------------------------------------------------------------------  Data Settings
             if(v.isSelected()){
-                DATA_SETTINGS = DATA_SETTINGS +  v.getId();
+                DATA_SETTINGS +=  v.getId();
             }else if ((DATA_SETTINGS & v.getId()) > 0){
-                DATA_SETTINGS = DATA_SETTINGS -  v.getId();
+                DATA_SETTINGS -=  v.getId();
             }
 
             Log.d(TAG, "Data: " + DATA_SETTINGS

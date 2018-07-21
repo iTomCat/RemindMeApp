@@ -4,6 +4,7 @@
     package="com.example.tomcat.remindmeapp">
 
     <uses-permission android:name="com.example.tomcat.remindmeapp.TERMS_READ" />
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
 
     <application
         android:allowBackup="true"

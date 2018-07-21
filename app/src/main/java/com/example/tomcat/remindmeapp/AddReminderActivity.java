@@ -1,6 +1,8 @@
 package com.example.tomcat.remindmeapp;
 
 import android.animation.ObjectAnimator;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -24,6 +26,8 @@ import android.view.animation.TranslateAnimation;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.tomcat.remindmeapp.sms.DialogSelectContact;
+
 import java.util.Random;
 
 import butterknife.ButterKnife;
@@ -32,7 +36,7 @@ import butterknife.ButterKnife;
  * Add Reminder Activity
  */
 
-public class AddReminderActivity extends AppCompatActivity{
+public class AddReminderActivity extends AppCompatActivity {
     //@BindView(R.id.in_btn) ImageView inButton;
     //@BindView(R.id.reminder_settings)ConstraintLayout out1Button;
     private Handler handlCountDown;
@@ -58,13 +62,16 @@ public class AddReminderActivity extends AppCompatActivity{
 
     static int CURRENT_SETTINGS = -1;
 
+    private String smsContact = null;
+    private String smsNumber = null;
+    private String smsMessage = null;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_remind);
         ButterKnife.bind(this);
-
 
         Toolbar toolbar =  findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
@@ -73,6 +80,8 @@ public class AddReminderActivity extends AppCompatActivity{
         getSupportActionBar().setTitle(getString(R.string.add_new_reminder));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+
+        if(CURRENT_SETTINGS == -1) CURRENT_SETTINGS = 250; // Set default settings > BIN: 11111100
 
         init();
         setInOutButtonsState(CURRENT_STATE);
@@ -93,6 +102,11 @@ public class AddReminderActivity extends AppCompatActivity{
         }else{
             til.setError(null);
         }*/
+
+        /*Uri uri = Uri.parse("smsto:732660660");
+        Intent it = new Intent(Intent.ACTION_SENDTO, uri);
+        it.putExtra("sms_body", "The SMS text");
+        startActivity(it);*/
 
 
         /*String input = ((EditText) findViewById(R.id.editTextTaskDescription)).getText().toString();
@@ -131,8 +145,6 @@ public class AddReminderActivity extends AppCompatActivity{
         }*/
 
     }
-
-
     private void init(){
         handlCountDown = new Handler();
         handlCountDown.postDelayed(placesAnimTimer, 300);
@@ -156,10 +168,10 @@ public class AddReminderActivity extends AppCompatActivity{
         actionsButton.setClickable(true);
         actionsButton.setOnClickListener(new actionsAndSettingsListener());
         actionsButton.setTag(REMINDER_ACTIONS);
+        setInfoOnActionButton();
 
         setSettingsAndActions();
     }
-
 
     //********************************************************************************************** Arrive / Leave Buttons Listener
     private class arriveOrOutListener implements View.OnClickListener {
@@ -170,37 +182,71 @@ public class AddReminderActivity extends AppCompatActivity{
         }
     }
 
-    //********************************************************************************************** Arrive / Leave Buttons Listener
+    //********************************************************************************************** Settings / Actions Buttons Listener
     private class actionsAndSettingsListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
             String buttonTag = (String) v.getTag();
 
             if (buttonTag.equals(REMINDER_SETTINGS)) {
-                Log.d("AddRem", "Click IN");
                 showDialogSettings();
 
             }else if (buttonTag.equals(REMINDER_ACTIONS)){
-                Log.d("AddRem", "Click OUT");
+               showDialogActions();
             }
         }
     }
 
 
-    // --------------------------------------------------------------------------------------------- Show Dialog Shake Info and Dim screen
+    // --------------------------------------------------------------------------------------------- Show Dialog Settings
     private void showDialogSettings() {
-      if(CURRENT_SETTINGS == -1) CURRENT_SETTINGS = 250; // Default settings > BIN: 11111100
       DialogFragment newFragment = new DialogSettings();
       Bundle args = new Bundle();
       args.putInt(REMINDER_SETTINGS, CURRENT_SETTINGS);
       newFragment.setArguments(args);
-      newFragment.show(getSupportFragmentManager(), "dialog");
+      newFragment.show(getSupportFragmentManager(), "dialog_settings");
     }
 
-    // Get data from Dialogs
-    public void doPositiveClick(int dataSettings) {
+    // Get data from Dialog Settings
+    public void onSettingsChanges(int dataSettings) {
         CURRENT_SETTINGS = dataSettings;
-        Log.d("AddRem", " Tadaaaaa222222");
+        setSettingsAndActions();
+    }
+
+    // --------------------------------------------------------------------------------------------- Show Dialog Actions
+    private void showDialogActions(){
+        DialogFragment newFragment = new DialogActions();
+        Bundle args = new Bundle();
+        args.putString(REMINDER_ACTIONS, smsContact);
+        newFragment.setArguments(args);
+        newFragment.show(getSupportFragmentManager(), "dialog_actions");
+
+    }
+
+    // Get data from Dialog Actions
+    public void onActionsSetSMS(String smsContact, String smsNumber, String smsMessage) {
+        this.smsContact = smsContact;
+        this.smsNumber = smsNumber;
+        this.smsMessage = smsMessage;
+
+        setInfoOnActionButton();
+    }
+
+    private void setInfoOnActionButton(){
+        // ----------------------------------------------------------------------------------------- ACTIONS
+        final TextView actionsTxt = findViewById(R.id.action_tv);
+        final TextView actionsDescrTxt = findViewById(R.id.action_desc_tv);
+        String actions;
+        if( smsContact == null) {
+           actions = getString(R.string.action) + " " + getString(R.string.act_remind_only);
+            actionsDescrTxt.setVisibility(View.GONE);
+        }else{
+            actions = getString(R.string.action) + " " + getString(R.string.sms_header);
+            String descr = getString(R.string.action_message_btn) + " " + smsContact;
+            actionsDescrTxt.setVisibility(View.VISIBLE);
+            actionsDescrTxt.setText(descr);
+        }
+        actionsTxt.setText(actions);
     }
 
 
@@ -231,32 +277,32 @@ public class AddReminderActivity extends AppCompatActivity{
 
     // ********************************************************************************************* Settings And Actions
     private void setSettingsAndActions(){
-        // -------------------------------------------------------------------------------- Settings
-        TextView settingsTxt = findViewById(R.id.settings_tv);
-        //TODO Add conditions once, always.....
-        String settings = getString(R.string.remind_always);
-        settingsTxt.setText(settings);
+        final TextView weekDays = findViewById(R.id.week_days);
+        weekDays.setVisibility(View.GONE);
 
-        TextView weekDays = findViewById(R.id.week_days);
-        weekDays.setVisibility(View.VISIBLE);
-        showPickedWeekDays();
+        // ----------------------------------------------------------------------------------------- SETTINGS
+        final TextView settingsTxt = findViewById(R.id.settings_tv);
+        String currSettings;
 
-        // --------------------------------------------------------------------------------- Actions
-        TextView actionsTxt = findViewById(R.id.action_tv);
-        //TODO Add actions.....
-        String actions = getString(R.string.action) + " " + getString(R.string.act_remind_only);
-        actionsTxt.setText(actions);
+        if((CURRENT_SETTINGS & REMIND_ONCE) > 0){ // ----------------------------------- Remind Once
+            currSettings = getString(R.string.remind_once);
 
-        TextView actionsDescrTxt = findViewById(R.id.action_desc_tv);
-        //TODO Add actions description.....
-        actionsDescrTxt.setVisibility(View.GONE);
-        //actionsDescrTxt.setText(actions);
+        }else if ((CURRENT_SETTINGS & REMIND_ALWAYS) > 0){ // ------------------------ Remind Always
+            currSettings = getString(R.string.remind_always);
+
+        }else { // ------------------------------------------------------ Remind on days of the week
+            currSettings = getString(R.string.remind_me_on);
+            weekDays.setVisibility(View.VISIBLE);
+            showPickedWeekDays();
+        }
+
+        settingsTxt.setText(currSettings);
     }
 
     // ********************************************************************************************* Picked Week Days
     private void showPickedWeekDays(){
         final TextView weekDaysTv = findViewById(R.id.week_days);
-        SpannableString[] finalString1 = new SpannableString[7];
+        SpannableString[] finalString = new SpannableString[7];
 
         for(int i=0; i<=6; i++) {
             String dayName = "day_" + Integer.toString(i);
@@ -267,14 +313,16 @@ public class AddReminderActivity extends AppCompatActivity{
             if (i >0 ) originalText = "  " + originalText;
             SpannableString highlighted = new SpannableString(originalText);
 
-            if (i == 1 || i == 4) {  // ---------------------------------------- Selected Weeks days
-                highlighted.setSpan(new ForegroundColorSpan(ContextCompat.getColor
-                                (this, R.color.colorPrimary)),
-                        0, originalText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            int currDay = AddReminderActivity.WEEK_DAYS[i];
+
+            if ((CURRENT_SETTINGS & currDay) > 0){
+               highlighted.setSpan(new ForegroundColorSpan(ContextCompat.getColor
+                               (this, R.color.colorPrimary)),
+                       0, originalText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
             }
-            finalString1[i]= highlighted;
+            finalString[i]= highlighted;
         }
-        weekDaysTv.setText(TextUtils.concat(finalString1));
+        weekDaysTv.setText(TextUtils.concat(finalString));
     }
 
 

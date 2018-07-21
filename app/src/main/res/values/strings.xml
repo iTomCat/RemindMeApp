@@ -11,6 +11,7 @@
     <string name="add_place_btn">Add Place Buttom</string>
     <string name="edit_icon">Edit Icon</string>
     <string name="pick_day">Pick a day of the week</string>
+    <string name="person_logo">Person Logo</string>
 
     <!-- Tabs -->
     <string name="reminders">Reminders</string>
@@ -18,6 +19,7 @@
 
 
     <!--Add Reminder -->
+    <string name="warning_permission">Until you grant the permission, we canot display the Contacts</string>
     <string name="add_new_reminder">Add a New Reminder</string>
     <string name="add">Add</string>
     <string name="ok">Ok</string>
@@ -28,11 +30,13 @@
     <string name="remind_me_to">Remind me to:</string>
     <string name="notes">Notes</string>
 
+    <string name="reminder_set">Reminder settings</string>
     <string name="remind_once">Remind me only once</string>
     <string name="remind_always">Always remind me</string>
     <string name="remind_week">Remind me on selected days of the week</string>
     <string name="remind_me_on">Remind me on:</string>
 
+    <string name="add_action">Add Action</string>
     <string name="action">Action:</string>
     <string name="act_remind_only">remind only</string>
     <string name="actn_send_sms">send SMS</string>
@@ -49,6 +53,14 @@
     <string name="day_4">FRI</string>
     <string name="day_5">SAT</string>
     <string name="day_6">SUN</string>
+
+    <!--Add Action -->
+    <string name="choose_contact">Choose a contact</string>
+    <string name="sms_header">sms message</string>
+    <string name="sms_message_txt">message text</string>
+    <string name="enter_message_txt">Please enter message text</string>
+    <string name="enter_message_btn">send sms to:</string>
+    <string name="action_message_btn">Sending sms to:</string>
 
 
 

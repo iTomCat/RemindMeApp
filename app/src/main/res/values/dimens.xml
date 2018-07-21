@@ -18,5 +18,9 @@
 
     <dimen name="anim_dist">20dp</dimen>
 
+    <!-- Buttons Add / delete -->
+    <dimen name="start_padding">8dp</dimen>
+    <dimen name="end_padding">5dp</dimen>
+
 
 </resources>
