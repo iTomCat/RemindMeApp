@@ -1,7 +1,7 @@
 package com.example.tomcat.remindmeapp;
 
 import android.animation.ObjectAnimator;
-import android.content.Intent;
+import android.content.ContentValues;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,6 +10,7 @@ import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.animation.FastOutLinearInInterpolator;
 import android.support.v7.app.AppCompatActivity;
@@ -23,13 +24,18 @@ import android.view.animation.Animation;
 import android.view.View;
 import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.example.tomcat.remindmeapp.sms.DialogSelectContact;
+import com.example.tomcat.remindmeapp.data.PlacesContract;
+import com.example.tomcat.remindmeapp.data.RemindersContract;
+import com.example.tomcat.remindmeapp.places.PlacesFragment;
 
 import java.util.Random;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 
 /**
@@ -37,8 +43,12 @@ import butterknife.ButterKnife;
  */
 
 public class AddReminderActivity extends AppCompatActivity {
-    //@BindView(R.id.in_btn) ImageView inButton;
-    //@BindView(R.id.reminder_settings)ConstraintLayout out1Button;
+    @BindView(R.id.add_button) Button addButton;
+    @BindView(R.id.in_btn) ImageView inButton;
+    @BindView(R.id.out_btn) ImageView outButton;
+    @BindView(R.id.reminder_settings) ConstraintLayout remindersButton;
+    @BindView(R.id.reminder_actions) ConstraintLayout actionsButton;
+
     private Handler handlCountDown;
 
     public final static int REMIND_ALWAYS = 1;
@@ -59,6 +69,7 @@ public class AddReminderActivity extends AppCompatActivity {
 
     final static String REMINDER_SETTINGS = "reminder"; //Cyclic or one-time reminder settings
     final static String REMINDER_ACTIONS = "actions"; // Action related to the reminder settings E.g. sending SMS
+    public final static String REMINDER_PLACES = "places"; // Select Place
 
     static int CURRENT_SETTINGS = -1;
 
@@ -80,6 +91,8 @@ public class AddReminderActivity extends AppCompatActivity {
         getSupportActionBar().setTitle(getString(R.string.add_new_reminder));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+        addButton.setVisibility(View.VISIBLE);
+
 
         if(CURRENT_SETTINGS == -1) CURRENT_SETTINGS = 250; // Set default settings > BIN: 11111100
 
@@ -124,53 +137,87 @@ public class AddReminderActivity extends AppCompatActivity {
 
 
 
-
         //Add Data OK in SQLite:
-        /*// Insert new task data via a ContentResolver
+        // Insert new task data via a ContentResolver
         // Create new empty ContentValues object
         ContentValues contentValues = new ContentValues();
         // Put the task description and selected mPriority into the ContentValues
-        contentValues.put(RemindersContract.RemindersEntry.COLUMN_DESCRIPTION, "OK");
+        contentValues.put(RemindersContract.RemindersEntry.COLUMN_DESCRIPTION, "OK1");
+
+        Log.d("TableErr", "111111:" + RemindersContract.RemindersEntry.CONTENT_URI
+                + "   contentValues: " + contentValues + "  getContentResolver " + getContentResolver());
+
+
+
 
         // Insert the content values via a ContentResolver
         Uri uri = getContentResolver().insert(RemindersContract.RemindersEntry.CONTENT_URI, contentValues);
 
-        Log.d("BeseOK", "URI:" + RemindersContract.RemindersEntry.CONTENT_URI + "   contentValues: "
+        Log.d("TableErr", "222222:" + RemindersContract.RemindersEntry.CONTENT_URI
+                + "   uri: " + uri);
+
+        //contentValues.put(PlacesContract.PlacesEntry.COLUMN_PLACE_ID, "Place ID1");
+        // Insert the content values via a ContentResolver
+        //getContentResolver().insert(PlacesContract.PlacesEntry.CONTENT_URI, contentValues);
+
+        Log.d("TableErr", "URI:" + RemindersContract.RemindersEntry.CONTENT_URI + "   contentValues: "
                 + contentValues);
 
         if(uri != null) {
             Toast.makeText(getBaseContext(), uri.toString(), Toast.LENGTH_LONG).show();
         }else{
             Toast.makeText(getBaseContext(), "Error", Toast.LENGTH_SHORT).show();
-        }*/
+        }
 
     }
     private void init(){
         handlCountDown = new Handler();
         handlCountDown.postDelayed(placesAnimTimer, 300);
-        //ConstraintLayout aa = findViewById(R.id.in_out_btn);
-        ImageView inButton = findViewById(R.id.in_btn);
+
         inButton.setClickable(true);
         inButton.setOnClickListener(new arriveOrOutListener());
         inButton.setTag(WHEN_ARRIVE);
 
-        ImageView outButton = findViewById(R.id.out_btn);
         outButton.setClickable(true);
         outButton.setOnClickListener(new arriveOrOutListener());
         outButton.setTag(WHEN_GET_OUT);
 
-        ConstraintLayout remindersButton = findViewById(R.id.reminder_settings);
         remindersButton.setClickable(true);
         remindersButton.setOnClickListener(new actionsAndSettingsListener());
         remindersButton.setTag(REMINDER_SETTINGS);
 
-        ConstraintLayout actionsButton = findViewById(R.id.reminder_actions);
         actionsButton.setClickable(true);
         actionsButton.setOnClickListener(new actionsAndSettingsListener());
         actionsButton.setTag(REMINDER_ACTIONS);
         setInfoOnActionButton();
 
         setSettingsAndActions();
+    }
+
+    // ********************************************************************************************* Select Place
+    public void selectPlace(View view) {
+        assert getSupportActionBar() != null;
+        getSupportActionBar().setTitle(getString(R.string.select_place));
+        addButton.setVisibility(View.GONE);
+
+        Log.d("PickPlace" , "PLACE");
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        PlacesFragment placesFragmentFragment = new PlacesFragment();
+
+        Bundle args = new Bundle();
+        args.putBoolean(REMINDER_PLACES, true);
+        placesFragmentFragment.setArguments(args);
+
+
+            fragmentManager.beginTransaction()
+                    .add(R.id.places_fragment, placesFragmentFragment)
+                    .addToBackStack("places_fragm")
+                    .commit();
+    }
+    public void onEnterFromSelectPlace(){
+        assert getSupportActionBar() != null;
+        getSupportActionBar().setTitle(getString(R.string.add_new_reminder));
+        addButton.setVisibility(View.VISIBLE);
     }
 
     //********************************************************************************************** Arrive / Leave Buttons Listener
@@ -359,5 +406,11 @@ public class AddReminderActivity extends AppCompatActivity {
         ovalAnim.setFillAfter(true);
         ovalAnim.setInterpolator(new FastOutLinearInInterpolator());
         ovalImage.startAnimation(ovalAnim);
+    }
+
+    @Override
+    public boolean onSupportNavigateUp(){
+        onBackPressed();
+        return true;
     }
 }

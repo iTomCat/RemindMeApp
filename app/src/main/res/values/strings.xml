@@ -62,6 +62,11 @@
     <string name="enter_message_btn">send sms to:</string>
     <string name="action_message_btn">Sending sms to:</string>
 
+    <!--Add Place -->
+    <string name="need_permission">You need to enable location permissions first</string>
+    <string name="play_services_problem">Install or update Google Play Services in order to continue</string>
+
+
 
 
 

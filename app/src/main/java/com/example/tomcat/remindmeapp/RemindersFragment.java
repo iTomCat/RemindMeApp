@@ -20,16 +20,16 @@ import com.example.tomcat.remindmeapp.models.Reminder;
 import java.util.ArrayList;
 
 /**
- * Fragment with Active Reminders - Reminder List
+ * Fragment with Active RemindersFragment - Reminder List
  */
 
-public class Reminders extends Fragment implements
+public class RemindersFragment extends Fragment implements
         ReminderAdapter.ReciepeAdapterOnClickHandler{
 
     private ArrayList<Reminder> mReminders = null;
     public ReminderAdapter.ReciepeAdapterOnClickHandler mClickHandler = this;
 
-    public Reminders(){
+    public RemindersFragment(){
 
     }
 

@@ -12,7 +12,7 @@ import com.example.tomcat.remindmeapp.models.Reminder;
 import java.util.ArrayList;
 
 /**
- * Adapter for Reminders on Main View
+ * Adapter for RemindersFragment on Main View
  */
 
 public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHolder> {

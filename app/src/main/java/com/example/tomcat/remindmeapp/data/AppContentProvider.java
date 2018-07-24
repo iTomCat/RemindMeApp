@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import static com.example.tomcat.remindmeapp.data.RemindersContract.RemindersEntry.TABLE_NAME;
 
@@ -18,15 +19,20 @@ import static com.example.tomcat.remindmeapp.data.RemindersContract.RemindersEnt
  */
 
 public class AppContentProvider extends ContentProvider{
+    //static final String AUTHORITY = "com.example.tomcat.remindmeapp";
     private RemindersDb remindersDb;
+    //private PlacesDb placesDb;
     public static final int REMINDERS = 100;
     public static final int REMINDER_WITH_ID = 101;
+    //public static final int PLACES = 200;
+    //public static final int PLACES_WITH_ID = 201;
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
     @Override
     public boolean onCreate() {
         Context context = getContext();
         remindersDb = new RemindersDb(context);
+        //placesDb = new PlacesDb(context);
         //TODO Tu dodać drugą bazę
         return true;
     }
@@ -67,18 +73,33 @@ public class AppContentProvider extends ContentProvider{
         int match = sUriMatcher.match(uri);
         Uri returnUri; // URI to be returned
 
+        Log.d("TableErr", "Create match " + match);
+
+        //long id = db.insert(TABLE_NAME, null, contentValues);
         switch (match) {
             case REMINDERS:
-                // Inserting values into reminders table
-                long id = db.insert(TABLE_NAME, null, contentValues);
+                // ------------------------------------------- Inserting values into reminders table
+                long id = db.insert(RemindersContract.RemindersEntry.TABLE_NAME, null, contentValues);
+                Log.d("TableErr", "id match " + id);
+                Log.d("TableErr", "TABLE_NAME " + RemindersContract.RemindersEntry.TABLE_NAME);
+                Log.d("TableErr", "contentValues " + contentValues);
+
                 if ( id > 0 ) {
                     returnUri = ContentUris.withAppendedId(RemindersContract.RemindersEntry.CONTENT_URI, id);
+                    Log.d("TableErr", "returnUri match " + returnUri);
                 } else {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 }
                 break;
-            // COMPLETED (4) Set the value for the returnedUri and write the default case for unknown URI's
-            // Default case throws an UnsupportedOperationException
+           /* case PLACES:
+                // ---------------------------------------------- Inserting values into places table
+                //long id = db.insert(TABLE_NAME, null, contentValues);
+                if ( id > 0 ) {
+                    returnUri = ContentUris.withAppendedId(PlacesContract.PlacesEntry.CONTENT_URI, id);
+                } else {
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                }
+                break;*/
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
