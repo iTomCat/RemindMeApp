@@ -2,11 +2,18 @@ package com.example.tomcat.remindmeapp.places;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,9 +24,16 @@ import android.widget.Toast;
 import com.example.tomcat.remindmeapp.AddReminderActivity;
 import com.example.tomcat.remindmeapp.MainActivity;
 import com.example.tomcat.remindmeapp.R;
+import com.example.tomcat.remindmeapp.ReminderAdapter;
+import com.example.tomcat.remindmeapp.data.AppContentProvider;
+import com.example.tomcat.remindmeapp.data.PlacesContract;
+import com.example.tomcat.remindmeapp.data.RemindersContract;
+import com.example.tomcat.remindmeapp.models.Places;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
+
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -31,11 +45,20 @@ import static android.app.Activity.RESULT_OK;
  * Fragment Displays a list with your places
  */
 
-public class PlacesFragment extends Fragment implements MainActivity.FabButtonListenerFromActivity {
+public class PlacesFragment extends Fragment implements
+        MainActivity.FabButtonListenerFromActivity,
+        PlacesAdapter.PlacesAdapterOnClickHandler,
+        LoaderManager.LoaderCallbacks{
+
+    public PlacesAdapter.PlacesAdapterOnClickHandler mClickHandler = this;
 
     public static final String TAG = MainActivity.class.getSimpleName();
     private static final int PERMISSIONS_REQUEST_FINE_LOCATION = 111;
     private static final int PLACE_PICKER_REQUEST = 1;
+
+    private PlacesAdapter adapter;
+    private final static int PLACES_ID_LOADER = 28;
+    private List<Places> mPlacesList = null;
 
     @BindView(R.id.fab_places_fragm) ImageButton fabPlus;
     private Unbinder unbinder;
@@ -51,12 +74,69 @@ public class PlacesFragment extends Fragment implements MainActivity.FabButtonLi
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.places_fragment, container, false);
         unbinder = ButterKnife.bind(this, view);
+
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager
+                (getActivity(), LinearLayoutManager.VERTICAL, false);
+
+        adapter = new PlacesAdapter(mClickHandler);
+
+        RecyclerView mRecyclerView = view.findViewById(R.id.recycler_view_places);
+        mRecyclerView.setHasFixedSize(true);
+        mRecyclerView.setLayoutManager(layoutManager);
+        mRecyclerView.setAdapter(adapter);
+
+        /*
+         Add a touch helper to the RecyclerView to recognize when a user swipes to delete an item.
+         An ItemTouchHelper enables touch behavior (like swipe and move) on each ViewHolder,
+         and uses callbacks to signal when a user is performing these actions.
+         */
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                Log.d("RemFrag", "Moved " );
+                return false;
+            }
+
+            @Override
+            public boolean isLongPressDragEnabled() {
+                Log.d("RemFrag", "Long Presed " );
+                return super.isLongPressDragEnabled();
+            }
+
+            // Called when a user swipes left or right on a ViewHolder
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+                // Here is where you'll implement swipe to delete
+                Log.d("RemFrag", "Swipped " + swipeDir);
+
+            }
+
+
+           /* @Override
+            public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+                if (viewHolder.getItemViewType() == ITEM_TYPE_ACTION_WIDTH_NO_SPRING) return 0;
+                return makeMovementFlags(ItemTouchHelper.UP|ItemTouchHelper.DOWN,
+                        ItemTouchHelper.START|ItemTouchHelper.END);
+            }*/
+
+          /*  @Override
+            public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
+                if (viewHolder instanceof ReminderAdapter.ViewHolder){
+                    Log.d("RemFrag", "aaaaa" );
+                    return 0;
+                }
+                Log.d("RemFrag", "bbbb" );
+                return super.getSwipeDirs(recyclerView, viewHolder);
+            }
+            */
+        }).attachToRecyclerView(mRecyclerView);
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
+        makeMovieSearchQuery();
 
         // ------- Checks if the entrance was from the main Activity or from the AddReminderActivity
         if(getArguments()!=null){
@@ -141,7 +221,7 @@ public class PlacesFragment extends Fragment implements MainActivity.FabButtonLi
 
             /*// Insert a new place into DB
             ContentValues contentValues = new ContentValues();
-            contentValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_ID, placeID);
+            contentValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_GOOGLE_ID, placeID);
             getContentResolver().insert(PlaceContract.PlaceEntry.CONTENT_URI, contentValues);
 
             Log.d("placeID", "PlaceID: " + placeID);
@@ -160,8 +240,59 @@ public class PlacesFragment extends Fragment implements MainActivity.FabButtonLi
     @Override
     public void onDestroy() {
         super.onDestroy();
+        /*if (ifEnterFromAddReminder) {
+            ((AddReminderActivity) getActivity()).onEnterFromSelectPlace(1);
+        }*/
+    }
+
+    // ********************************************************************************************* Click on Places List
+    @Override
+    public void onClick(int position) {
+        // click from listener
         if (ifEnterFromAddReminder) {
-            ((AddReminderActivity) getActivity()).onEnterFromSelectPlace();
+            int placeIDinDB = mPlacesList.get(position).getPlaceIDinDB();
+            String placeName = mPlacesList.get(position).getPlaceName();
+            ((AddReminderActivity) getActivity()).onEnterFromSelectPlace(placeIDinDB, placeName);
+
+            getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
         }
+    }
+
+    // *********************************************************************************************
+    // ********************************************************************************************* Start Load
+    private void makeMovieSearchQuery() {
+        LoaderManager loaderManager = getActivity().getSupportLoaderManager();
+        Object movieSearchLoader = loaderManager.getLoader(PLACES_ID_LOADER);
+
+        if (movieSearchLoader == null){
+            //loaderManager.initLoader(REMINDERS_ID_LOADER, queryBundle, this);
+            loaderManager.initLoader(PLACES_ID_LOADER, null, this);
+        }else {
+            loaderManager.restartLoader(PLACES_ID_LOADER, null, this);
+        }
+    }
+
+    // --------------------------------------------------------------------------------------------- Async Task Loader
+    @Override
+    public Loader onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(getActivity(),
+                PlacesContract.PlacesEntry.CONTENT_URI,
+                null,
+                null,
+                null,
+                null);
+    }
+
+    //@SuppressWarnings("unchecked")
+    @Override
+    public void onLoadFinished(Loader loader, Object loadedData) {
+        Cursor mPlacesData = (Cursor) loadedData;
+        mPlacesList = AppContentProvider.placesListFromCursor(mPlacesData);
+        adapter.setRemindersData(mPlacesList);
+    }
+
+    @Override
+    public void onLoaderReset(Loader loader) {
+        //TODO MAKE LOAD RESET
     }
 }

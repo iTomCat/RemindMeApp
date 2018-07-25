@@ -1,6 +1,9 @@
 package com.example.tomcat.remindmeapp;
 
+import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Movie;
 import android.graphics.Typeface;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
@@ -10,6 +13,10 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -20,6 +27,9 @@ import android.view.animation.ScaleAnimation;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
+import com.example.tomcat.remindmeapp.data.AppContentProvider;
+import com.example.tomcat.remindmeapp.data.RemindersContract;
+import com.example.tomcat.remindmeapp.models.Reminder;
 import com.example.tomcat.remindmeapp.places.PlacesFragment;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +41,8 @@ import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListe
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 
+import org.json.JSONException;
+
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
@@ -38,26 +50,9 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity implements
         AppBarLayout.OnOffsetChangedListener,
         ConnectionCallbacks,
-        OnConnectionFailedListener {
+        OnConnectionFailedListener{
 
     public FabButtonListenerFromActivity activityListener;
-
-    public void setActivityListener(FabButtonListenerFromActivity activityListener) {
-        this.activityListener = activityListener;
-    }
-
-
-
-    public interface FabButtonListenerFromActivity {
-        void fabButtonFromActivity();
-    }
-
-
-    /*public static final String TAG = MainActivity.class.getSimpleName();
-    private static final int PERMISSIONS_REQUEST_FINE_LOCATION = 111;
-    private static final int PLACE_PICKER_REQUEST = 1;*/
-
-
 
     public static Typeface robotoLightFont;
     public static Typeface robotoFont;
@@ -129,6 +124,14 @@ public class MainActivity extends AppCompatActivity implements
     }
 
     // ********************************************************************************************* Fab Button
+    public void setActivityListener(FabButtonListenerFromActivity activityListener) {
+        this.activityListener = activityListener;
+    }
+
+    public interface FabButtonListenerFromActivity {
+        void fabButtonFromActivity();
+    }
+
     public void plusFabButton(View view) {
         if (currentPage == 0){ // ------------------------------------------------------------------ + action for RemindersFragment
             Intent addReminderIntent = new Intent(MainActivity.this,
@@ -140,97 +143,8 @@ public class MainActivity extends AppCompatActivity implements
             if (null != activityListener) {
                 activityListener.fabButtonFromActivity();
             }
-
-
-
-
-
-                // Check the permission is already granted or not
-               /* if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                        && ActivityCompat.checkSelfPermission(this,
-                        android.Manifest.permission.ACCESS_FINE_LOCATION)
-                        != PackageManager.PERMISSION_GRANTED)  {
-                    ActivityCompat.requestPermissions(MainActivity.this,
-                            new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                            PERMISSIONS_REQUEST_FINE_LOCATION);
-                } else {
-                    Log.d("placeID", "in: " +  ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION));
-                    // Android version is lesser than 6.0 or the permission is already granted
-                    try {
-                        PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
-                        Intent i = builder.build(this);
-                        startActivityForResult(i, PLACE_PICKER_REQUEST);
-                    } catch (GooglePlayServicesRepairableException e) {
-                        Log.e(TAG, String.format("GooglePlayServices Not Available [%s]", e.getMessage()));
-                        Toast.makeText(this, getString(R.string.play_services_problem),
-                                Toast.LENGTH_LONG).show();
-                    } catch (Exception e) {
-                        Log.e(TAG, String.format("PlacePicker Exception: %s", e.getMessage()));
-                        Toast.makeText(this, getString(R.string.play_services_problem),
-                                Toast.LENGTH_LONG).show();
-                    }
-                }*/
         }
     }
-
-
-
-    /*public static void addPlace(Activity activity, MainActivity mainActivity){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && ActivityCompat.checkSelfPermission(activity,
-                android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED)  {
-            ActivityCompat.requestPermissions(activity,
-                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_FINE_LOCATION);
-        } else {
-            // Android version is lesser than 6.0 or the permission is already granted
-            Log.d("placeID", "Add222");
-            try {
-                PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
-                Intent i = builder.build(activity);
-                mainActivity.startActivityForResult(i, PLACE_PICKER_REQUEST);
-                //activity.startActivity(i);
-            } catch (GooglePlayServicesRepairableException e) {
-                Log.e(TAG, String.format("GooglePlayServices Not Available [%s]", e.getMessage()));
-                Toast.makeText(activity, activity.getString(R.string.play_services_problem),
-                        Toast.LENGTH_LONG).show();
-            } catch (Exception e) {
-                Log.e(TAG, String.format("PlacePicker Exception: %s", e.getMessage()));
-                Toast.makeText(activity, activity.getString(R.string.play_services_problem),
-                        Toast.LENGTH_LONG).show();
-            }
-        }
-    }*/
-
-
-    /*protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d("placeID", "requestCode: " + requestCode);
-        if (requestCode == PLACE_PICKER_REQUEST && resultCode == RESULT_OK) {
-            Place place = PlacePicker.getPlace(this, data);
-            if (place == null) {
-                Log.i(TAG, "No place selected");
-                return;
-            }
-
-            // Extract the place information from the API
-            String placeName = place.getName().toString();
-            String placeAddress = place.getAddress().toString();
-            String placeID = place.getId();
-
-            Log.d("placeID", "placeName: " + placeName);
-
-            Insert a new place into DB
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_ID, placeID);
-            getContentResolver().insert(PlaceContract.PlaceEntry.CONTENT_URI, contentValues);
-
-            Log.d("placeID", "PlaceID: " + placeID);
-
-            // Get live data information
-            refreshPlacesData();
-        }
-    }*/
 
     // ********************************************************************************************* Logo Scaling
     @Override

@@ -10,8 +10,8 @@ import android.provider.BaseColumns;
 public class RemindersContract {
 
     // -------------------------------------------------------------- Content Provider URI constants
-    static final String AUTHORITY = "com.example.tomcat.remindmeapp";
-    static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AUTHORITY);
+    //static final String AUTHORITY = "com.example.tomcat.remindmeapp";
+    static final Uri BASE_CONTENT_URI = Uri.parse("content://" + AppContentProvider.AUTHORITY);
     static final String PATH_REMINDERS = "reminders_path";
 
     public static final class RemindersEntry implements BaseColumns {
@@ -25,8 +25,8 @@ public class RemindersContract {
 
         //public static final String COLUMN_ID = "remind_id";
         public static final String COLUMN_IN_OR_OUT = "in_or_out";
-        public static final String COLUMN_PLACES_ID = "places";
-        public static final String COLUMN_DESCRIPTION = "description";
+        public static final String COLUMN_PLACES_DB_ID = "places";
+        public static final String COLUMN_NAME = "name";
         public static final String COLUMNM_ACTIVE = "active";
         public static final String COLUMN_REMIND_SETTINGS = "settings";
         public static final String COLUMN_REMIND_ACTION = "action";

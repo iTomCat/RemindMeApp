@@ -27,7 +27,6 @@ import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.tomcat.remindmeapp.data.PlacesContract;
 import com.example.tomcat.remindmeapp.data.RemindersContract;
@@ -48,6 +47,13 @@ public class AddReminderActivity extends AppCompatActivity {
     @BindView(R.id.out_btn) ImageView outButton;
     @BindView(R.id.reminder_settings) ConstraintLayout remindersButton;
     @BindView(R.id.reminder_actions) ConstraintLayout actionsButton;
+    @BindView(R.id.text_input_lay) TextInputLayout inputTxtLay;
+    @BindView(R.id.text_input_txt) TextInputEditText inputTxt;
+    @BindView(R.id.select_place_tv)
+    com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight placeNameTxt;
+
+
+
 
     private Handler handlCountDown;
 
@@ -63,6 +69,9 @@ public class AddReminderActivity extends AppCompatActivity {
     public final static int SUN = 512;
     public final static int []WEEK_DAYS = {MON, TUE, WED, THU, FRI, SAT, SUN};
 
+    public final static int REMIND_IS_ACTIVE = 1;
+    public final static int REMIND_IS_INACTIVE = 0;
+
     final static int WHEN_ARRIVE = 0;
     final static int WHEN_GET_OUT = 1;
     static int CURRENT_STATE = WHEN_ARRIVE;
@@ -73,9 +82,16 @@ public class AddReminderActivity extends AppCompatActivity {
 
     static int CURRENT_SETTINGS = -1;
 
+    final static int ACTION_REMIND_ONLY = 0;
+    final static int ACTION_SENS_SMS = 1;
+    static int CURRENT_ACTION = 0;
+
+
     private String smsContact = null;
     private String smsNumber = null;
     private String smsMessage = null;
+
+    private int placeID = -1;
 
 
     @Override
@@ -99,17 +115,6 @@ public class AddReminderActivity extends AppCompatActivity {
         init();
         setInOutButtonsState(CURRENT_STATE);
 
-        // ----------------------------------------------- Displaying a random example of a reminder
-        TextInputLayout inputTxtLay = findViewById(R.id.text_input_lay);
-        TextInputEditText inputTxt = findViewById(R.id.text_input_txt);
-        Random generator = new Random();
-        int random = generator.nextInt(4);
-        String reference = "eg_" + Integer.toString(random);
-        int refToString = getResources().getIdentifier(reference, "string", getPackageName());
-        inputTxt.setHint(getString(refToString));
-
-        //inputTxt.setFocusable(false);
-
         /*if(tiet.getText().toString().isEmpty()){
             til.setError("Please enter valid address.");
         }else{
@@ -126,49 +131,6 @@ public class AddReminderActivity extends AppCompatActivity {
         if (input.length() == 0) {
         return;
         }*/
-
-
-
-
-
-
-
-        // --------------------------------------------------------------------------
-
-
-
-        //Add Data OK in SQLite:
-        // Insert new task data via a ContentResolver
-        // Create new empty ContentValues object
-        ContentValues contentValues = new ContentValues();
-        // Put the task description and selected mPriority into the ContentValues
-        contentValues.put(RemindersContract.RemindersEntry.COLUMN_DESCRIPTION, "OK1");
-
-        Log.d("TableErr", "111111:" + RemindersContract.RemindersEntry.CONTENT_URI
-                + "   contentValues: " + contentValues + "  getContentResolver " + getContentResolver());
-
-
-
-
-        // Insert the content values via a ContentResolver
-        Uri uri = getContentResolver().insert(RemindersContract.RemindersEntry.CONTENT_URI, contentValues);
-
-        Log.d("TableErr", "222222:" + RemindersContract.RemindersEntry.CONTENT_URI
-                + "   uri: " + uri);
-
-        //contentValues.put(PlacesContract.PlacesEntry.COLUMN_PLACE_ID, "Place ID1");
-        // Insert the content values via a ContentResolver
-        //getContentResolver().insert(PlacesContract.PlacesEntry.CONTENT_URI, contentValues);
-
-        Log.d("TableErr", "URI:" + RemindersContract.RemindersEntry.CONTENT_URI + "   contentValues: "
-                + contentValues);
-
-        if(uri != null) {
-            Toast.makeText(getBaseContext(), uri.toString(), Toast.LENGTH_LONG).show();
-        }else{
-            Toast.makeText(getBaseContext(), "Error", Toast.LENGTH_SHORT).show();
-        }
-
     }
     private void init(){
         handlCountDown = new Handler();
@@ -192,6 +154,75 @@ public class AddReminderActivity extends AppCompatActivity {
         setInfoOnActionButton();
 
         setSettingsAndActions();
+
+        // ----------------------------------------------- Displaying a random example of a reminder
+        inputTxtLay = findViewById(R.id.text_input_lay);
+        inputTxt = findViewById(R.id.text_input_txt);
+        Random generator = new Random();
+        int random = generator.nextInt(4);
+        String reference = "eg_" + Integer.toString(random);
+        int refToString = getResources().getIdentifier(reference, "string", getPackageName());
+        inputTxt.setHint(getString(refToString));
+
+        //inputTxt.setFocusable(false);
+    }
+
+
+    private void writingData(){
+        ContentValues contentValues = new ContentValues();
+
+        // ------------------------------------------------------------------------------------ Name
+        String remName = inputTxt.getText().toString();
+        //nie moze byc puste != null
+        if(remName.isEmpty()){
+            inputTxtLay.setError("Please enter valid address.");
+        }else{
+            inputTxtLay.setError(null);
+            contentValues.put(RemindersContract.RemindersEntry.COLUMN_NAME, remName);
+        }
+
+
+        // ------------------------------------------------------------------- Remind when In or Out
+        contentValues.put(RemindersContract.RemindersEntry.COLUMN_IN_OR_OUT, CURRENT_STATE);
+
+        // -------------------------------------------------------------------------- Place ID in DB
+        contentValues.put(RemindersContract.RemindersEntry.COLUMN_PLACES_DB_ID, placeID);
+        // nie moze byc puste / musi byc >=0
+
+        // ---------------------------------------------------------------------- Reminder is ACTIVE
+        contentValues.put(RemindersContract.RemindersEntry.COLUMNM_ACTIVE, REMIND_IS_ACTIVE);
+
+        // ----------------------------------------------------------------------- Reminder SETTINGS
+        contentValues.put(RemindersContract.RemindersEntry.COLUMN_REMIND_SETTINGS, CURRENT_SETTINGS);
+
+        // ------------------------------------------------------------------------- Reminder ACTION
+        contentValues.put(RemindersContract.RemindersEntry.COLUMN_REMIND_ACTION, CURRENT_ACTION);
+
+
+        getContentResolver().insert(RemindersContract.RemindersEntry.CONTENT_URI, contentValues);
+
+        //Uri uri = getContentResolver().insert(RemindersContract.RemindersEntry.CONTENT_URI, contentValues);
+
+        /*if(uri != null) {
+            Toast.makeText(getBaseContext(), uri.toString(), Toast.LENGTH_LONG).show();
+        }else{
+            Toast.makeText(getBaseContext(), "Error", Toast.LENGTH_SHORT).show();
+        }*/
+
+
+        ////// TODO do zapisywania miejsca
+
+        // Add Place
+        contentValues.clear();
+        //ContentValues contentValues1 = new ContentValues();
+        contentValues.put(PlacesContract.PlacesEntry.COLUMN_PLACE_GOOGLE_ID, "colID777");
+        contentValues.put(PlacesContract.PlacesEntry.COLUMN_PLACE_NAME, "place nammee");
+        Uri uri1 = getContentResolver().insert(PlacesContract.PlacesEntry.CONTENT_URI, contentValues);
+
+
+        Log.d("TableErr", "333:" + PlacesContract.PlacesEntry.CONTENT_URI
+                + "   uri: " + uri1);
+
     }
 
     // ********************************************************************************************* Select Place
@@ -200,7 +231,6 @@ public class AddReminderActivity extends AppCompatActivity {
         getSupportActionBar().setTitle(getString(R.string.select_place));
         addButton.setVisibility(View.GONE);
 
-        Log.d("PickPlace" , "PLACE");
         FragmentManager fragmentManager = getSupportFragmentManager();
         PlacesFragment placesFragmentFragment = new PlacesFragment();
 
@@ -214,10 +244,14 @@ public class AddReminderActivity extends AppCompatActivity {
                     .addToBackStack("places_fragm")
                     .commit();
     }
-    public void onEnterFromSelectPlace(){
+    public void onEnterFromSelectPlace(int placeID, String name){
         assert getSupportActionBar() != null;
         getSupportActionBar().setTitle(getString(R.string.add_new_reminder));
         addButton.setVisibility(View.VISIBLE);
+
+        this.placeID = placeID;
+        placeNameTxt.setText(name);
+        handlCountDown.removeCallbacks(placesAnimTimer);
     }
 
     //********************************************************************************************** Arrive / Leave Buttons Listener
@@ -285,13 +319,15 @@ public class AddReminderActivity extends AppCompatActivity {
         final TextView actionsDescrTxt = findViewById(R.id.action_desc_tv);
         String actions;
         if( smsContact == null) {
-           actions = getString(R.string.action) + " " + getString(R.string.act_remind_only);
+            actions = getString(R.string.action) + " " + getString(R.string.act_remind_only);
             actionsDescrTxt.setVisibility(View.GONE);
+            CURRENT_ACTION = ACTION_REMIND_ONLY;
         }else{
             actions = getString(R.string.action) + " " + getString(R.string.sms_header);
             String descr = getString(R.string.action_message_btn) + " " + smsContact;
             actionsDescrTxt.setVisibility(View.VISIBLE);
             actionsDescrTxt.setText(descr);
+            CURRENT_ACTION = ACTION_SENS_SMS;
         }
         actionsTxt.setText(actions);
     }
@@ -317,8 +353,7 @@ public class AddReminderActivity extends AppCompatActivity {
         @Override
         public void run() {
             placesPointerAnimator();
-            handlCountDown.postDelayed(placesAnimTimer, 3200);
-        }
+            handlCountDown.postDelayed(placesAnimTimer, 3200);}
     };
 
 

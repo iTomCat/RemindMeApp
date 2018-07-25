@@ -5,15 +5,24 @@ package com.example.tomcat.remindmeapp.models;
  */
 
 public class Places {
+    private int placeIDinDB;
     private String placeID;
     private String placeName;
 
+    public int getPlaceIDinDB() {
+        return placeIDinDB;
+    }
 
-    public String getPlaceID() {
+    public void setPlaceIDinDB(int placeIDinDB) {
+        this.placeIDinDB = placeIDinDB;
+    }
+
+
+    public String getPlaceGoogleID() {
         return placeID;
     }
 
-    public void setPlaceID(String placeID) {
+    public void setPlaceGoogleID(String placeID) {
         this.placeID = placeID;
     }
 

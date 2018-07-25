@@ -7,26 +7,29 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.tomcat.remindmeapp.models.Places;
 import com.example.tomcat.remindmeapp.models.Reminder;
 
-import java.util.ArrayList;
+import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 /**
- * Adapter for RemindersFragment on Main View
+ * Adapter for Reminders List
  */
 
 public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHolder> {
-    private ArrayList<Reminder> reminders;
-    private final ReciepeAdapterOnClickHandler mClickHandler;
+    private List<Reminder> mRemindersData;
+    private List<Places> mPlacesData;
+    private final ReminderAdapterOnClickHandler mClickHandler;
 
-    ReminderAdapter(ArrayList<Reminder> reminders, ReciepeAdapterOnClickHandler clickHandler) {
-        this.reminders = reminders;
+    ReminderAdapter(ReminderAdapterOnClickHandler clickHandler) {
         this.mClickHandler = clickHandler;
     }
 
 
-
-    public interface ReciepeAdapterOnClickHandler {
+    public interface ReminderAdapterOnClickHandler {
         void onClick(int position);
     }
 
@@ -38,19 +41,19 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener{
-        /*@BindView(R.id.tv_name)
-        TextView remNameTxt;*/
-        //@BindView(R.id.cake_photo)
-        //ImageView cakeView;
+        @BindView(R.id.tv_name)
+        com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight remNameTxt;;
 
-        com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight remNameTxt;
+        @BindView(R.id.tv_descr)
+        com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight placeNameTxt;;
 
         ViewHolder(View view) {
             super(view);
             view.setOnClickListener(this);
             view.setOnLongClickListener(this);
-            //ButterKnife.bind(this, view);
-            remNameTxt = view.findViewById(R.id.tv_name);
+            ButterKnife.bind(this, view);
+            //remNameTxt = view.findViewById(R.id.tv_name);
+            //placeNameTxt = view.findViewById(R.id.tv_descr);
         }
 
         @Override
@@ -71,8 +74,30 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(ReminderAdapter.ViewHolder holder, int position) {
+        String descr = mRemindersData.get(position).getName();
         Context context = holder.itemView.getContext();
-        holder.remNameTxt.setText(reminders.get(position).getRemindName());
+        holder.remNameTxt.setText(descr);
+
+        int currPlaceID = mRemindersData.get(position).getPlaceID();
+        int posonListByID = -1;
+        // get data from DB Places by ID
+        for(int i=0; i<mPlacesData.size(); i++){
+           int currIDinDB = mPlacesData.get(i).getPlaceIDinDB();
+            if (currIDinDB == currPlaceID){
+                posonListByID = i;
+                break;
+           }
+        }
+
+        if (posonListByID >= 0 ) {
+            String placeName = mPlacesData.get(posonListByID).getPlaceName();
+            holder.placeNameTxt.setText(placeName);
+        }
+
+
+
+
+
 
         /*String imageUrl = reminders.get(position).getImage();
         if (imageUrl.isEmpty()){
@@ -103,6 +128,13 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
     @Override
     public int getItemCount() {
-        return reminders.size();
+        if (null == mRemindersData) return 0;
+        return mRemindersData.size();
+    }
+
+    void setRemindersData(List<Reminder> moviesData, List<Places> placesData) {
+        mRemindersData = moviesData;
+        mPlacesData = placesData;
+        notifyDataSetChanged();
     }
 }
