@@ -13,6 +13,7 @@ public class Reminder {
     private int active;
     private int settings;
     private int action;
+    private int smsID;
     private String notes;
 
     public int getInOut() {
@@ -55,6 +56,13 @@ public class Reminder {
     }
     public void setAction(int action) {
         this.action = action;
+    }
+
+    public int getSmsID() {
+        return smsID;
+    }
+    public void setSmsID(int smsID) {
+        this.smsID = smsID;
     }
 
     public String getNotes() {

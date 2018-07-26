@@ -30,6 +30,7 @@ public class RemindersContract {
         public static final String COLUMNM_ACTIVE = "active";
         public static final String COLUMN_REMIND_SETTINGS = "settings";
         public static final String COLUMN_REMIND_ACTION = "action";
+        public static final String COLUMN_REMIND_SMS_ID = "sms";
         public static final String COLUMN_NOTES = "notes";
 
 

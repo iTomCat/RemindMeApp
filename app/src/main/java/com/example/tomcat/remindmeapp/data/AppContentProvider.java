@@ -10,8 +10,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
+import com.example.tomcat.remindmeapp.models.Actions;
 import com.example.tomcat.remindmeapp.models.Places;
 import com.example.tomcat.remindmeapp.models.Reminder;
 
@@ -26,12 +26,16 @@ public class AppContentProvider extends ContentProvider{
     static final String AUTHORITY = "com.example.tomcat.remindmeapp";
     private RemindersDb remindersDb;
     private PlacesDb placesDb;
+    private ActionsDb actionsDb;
 
     public static final int REMINDERS = 100;
     public static final int REMINDER_WITH_ID = 101;
 
     public static final int PLACES = 200;
     public static final int PLACES_WITH_ID = 201;
+
+    public static final int ACTIONS = 300;
+    public static final int ACTIONS_WITH_ID = 301;
 
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
@@ -40,7 +44,7 @@ public class AppContentProvider extends ContentProvider{
         Context context = getContext();
         remindersDb = new RemindersDb(context);
         placesDb = new PlacesDb(context);
-        //TODO Tu dodać drugą bazę
+        actionsDb = new ActionsDb(context);
         return true;
     }
 
@@ -63,6 +67,14 @@ public class AppContentProvider extends ContentProvider{
         // Single Item
         uriMatcher.addURI(AUTHORITY, PlacesContract.PATH_PLACES + "/#",
                 PLACES_WITH_ID);
+
+        // --------------------------------------------------------------------------------- Actions
+        // Directory
+        uriMatcher.addURI(AUTHORITY, ActionsContract.PATH_ACTIONS,
+                ACTIONS);
+        // Single Item
+        uriMatcher.addURI(AUTHORITY, ActionsContract.PATH_ACTIONS + "/#",
+                ACTIONS_WITH_ID);
 
         return uriMatcher;
     }
@@ -90,6 +102,17 @@ public class AppContentProvider extends ContentProvider{
             case PLACES:
                 final SQLiteDatabase dbPlaces = placesDb.getReadableDatabase();
                 retCursor = dbPlaces.query(PlacesContract.PlacesEntry.TABLE_NAME,
+                        projection,
+                        selection,
+                        selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+
+            case ACTIONS:
+                final SQLiteDatabase dbActions = actionsDb.getReadableDatabase();
+                retCursor = dbActions.query(ActionsContract.ActionsEntry.TABLE_NAME,
                         projection,
                         selection,
                         selectionArgs,
@@ -136,6 +159,7 @@ public class AppContentProvider extends ContentProvider{
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 }
                 break;
+
             case PLACES:
                 // ---------------------------------------------- Inserting values into places table
                 final SQLiteDatabase dbPla = placesDb.getWritableDatabase();
@@ -144,6 +168,19 @@ public class AppContentProvider extends ContentProvider{
                 if ( id_places > 0 ) {
                     returnUri = ContentUris.withAppendedId(
                             PlacesContract.PlacesEntry.CONTENT_URI, id_places);
+                } else {
+                    throw new android.database.SQLException("Failed to insert row into " + uri);
+                }
+                break;
+
+            case ACTIONS:
+                // --------------------------------------------- Inserting values into actions table
+                final SQLiteDatabase dbActions = actionsDb.getWritableDatabase();
+                long id_actions = dbActions.insert(
+                        ActionsContract.ActionsEntry.TABLE_NAME, null, contentValues);
+                if ( id_actions > 0 ) {
+                    returnUri = ContentUris.withAppendedId(
+                            PlacesContract.PlacesEntry.CONTENT_URI, id_actions);
                 } else {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 }
@@ -176,9 +213,6 @@ public class AppContentProvider extends ContentProvider{
     public static List<Reminder> remindersListFromCursor(Cursor cursor){
         List<Reminder> mRemindersList = new ArrayList<>();
 
-        Log.d("DataBD", "inOut " + cursor.getCount() + "  pos: " + cursor.getPosition()
-                + "  col: " + cursor.getColumnName(1));
-
         for(cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
             Reminder reminder = new Reminder();
 
@@ -200,6 +234,9 @@ public class AppContentProvider extends ContentProvider{
             int action = cursor.getColumnIndex(RemindersContract.RemindersEntry.COLUMN_REMIND_ACTION);
             reminder.setAction(cursor.getInt(action));
 
+            int smsID = cursor.getColumnIndex(RemindersContract.RemindersEntry.COLUMN_REMIND_SMS_ID);
+            reminder.setSmsID(cursor.getInt(smsID));
+
             int notes = cursor.getColumnIndex(RemindersContract.RemindersEntry.COLUMN_NOTES);
             reminder.setNotes(cursor.getString(notes));
 
@@ -210,11 +247,6 @@ public class AppContentProvider extends ContentProvider{
 
     public static List<Places> placesListFromCursor(Cursor cursor){
         List<Places> mPlacesList = new ArrayList<>();
-
-        Log.d("DataBD", "daaa " + cursor.getCount() + "  pos: " + cursor.getPosition()
-                + "  col: " + cursor.getColumnName(1));
-
-        cursor.moveToFirst();
 
         for(cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
             Places place = new Places();
@@ -231,6 +263,29 @@ public class AppContentProvider extends ContentProvider{
             mPlacesList.add(place);
         }
         return mPlacesList;
+    }
+
+    public static List<Actions> actionsListFromCursor(Cursor cursor){
+        List<Actions> mActionList = new ArrayList<>();
+
+        for(cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
+            Actions actions = new Actions();
+
+            int actionIDinDB = cursor.getColumnIndex(ActionsContract.ActionsEntry._ID);
+            actions.setActionIDinDB(cursor.getInt(actionIDinDB));
+
+            int smsContact = cursor.getColumnIndex(ActionsContract.ActionsEntry.COLUMN_SMS_CONTACT);
+            actions.setSmsContact(cursor.getString(smsContact));
+
+            int smsNumber = cursor.getColumnIndex(ActionsContract.ActionsEntry.COLUMN_SMS_NUMBER);
+            actions.setSmsNumber(cursor.getString(smsNumber));
+
+            int smsMessage = cursor.getColumnIndex(ActionsContract.ActionsEntry.COLUMN_SMS_MESSAGE);
+            actions.setSmsMessage(cursor.getString(smsMessage));
+
+            mActionList.add(actions);
+        }
+        return mActionList;
     }
 
 }

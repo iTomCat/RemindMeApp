@@ -1,12 +1,15 @@
 package com.example.tomcat.remindmeapp.places;
 
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -24,10 +27,8 @@ import android.widget.Toast;
 import com.example.tomcat.remindmeapp.AddReminderActivity;
 import com.example.tomcat.remindmeapp.MainActivity;
 import com.example.tomcat.remindmeapp.R;
-import com.example.tomcat.remindmeapp.ReminderAdapter;
 import com.example.tomcat.remindmeapp.data.AppContentProvider;
 import com.example.tomcat.remindmeapp.data.PlacesContract;
-import com.example.tomcat.remindmeapp.data.RemindersContract;
 import com.example.tomcat.remindmeapp.models.Places;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.Place;
@@ -55,14 +56,18 @@ public class PlacesFragment extends Fragment implements
     public static final String TAG = MainActivity.class.getSimpleName();
     private static final int PERMISSIONS_REQUEST_FINE_LOCATION = 111;
     private static final int PLACE_PICKER_REQUEST = 1;
+    public static final int PALCE_NAME_REQUEST = 2;
+    public static final String PALCE_NAME_DATA = "place_name";
 
     private PlacesAdapter adapter;
     private final static int PLACES_ID_LOADER = 28;
     private List<Places> mPlacesList = null;
+    String placeID = null;
 
     @BindView(R.id.fab_places_fragm) ImageButton fabPlus;
     private Unbinder unbinder;
     private boolean ifEnterFromAddReminder = false;
+    private boolean placeWasAdded = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -162,12 +167,13 @@ public class PlacesFragment extends Fragment implements
         fabPlus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (ifEnterFromAddReminder) placeWasAdded = true;
                 addPlace();
             }
         });
     }
 
-    // ********************************************************************************************* PlacePicker
+    // ********************************************************************************************* Add Place PlacePicker
     public void addPlace(){
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
                 && ActivityCompat.checkSelfPermission(getActivity(),
@@ -178,7 +184,6 @@ public class PlacesFragment extends Fragment implements
                     PERMISSIONS_REQUEST_FINE_LOCATION);
         } else {
             // Android version is lesser than 6.0 or the permission is already granted
-            Log.d("placeID", "Add222");
             try {
                 PlacePicker.IntentBuilder builder = new PlacePicker.IntentBuilder();
                 Intent i = builder.build(getActivity());
@@ -204,7 +209,7 @@ public class PlacesFragment extends Fragment implements
      * @param data        The Intent that carries the result data.
      */
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d("placeID", "requestCode: " + requestCode);
+        // ------------------------------------------------------------------------------ PICK PLACE
         if (requestCode == PLACE_PICKER_REQUEST && resultCode == RESULT_OK) {
             Place place = PlacePicker.getPlace(getActivity(), data);
             if (place == null) {
@@ -212,50 +217,74 @@ public class PlacesFragment extends Fragment implements
                 return;
             }
 
-            // Extract the place information from the API
+            //Extract the place information from the API
             String placeName = place.getName().toString();
             String placeAddress = place.getAddress().toString();
-            String placeID = place.getId();
+            placeID = place.getId();
+            Log.d("placeID", "placeName: " + placeName + " Adress: " + placeAddress);
 
-            Log.d("placeID", "placeName: " + placeName);
+            showDialogPlaceName();
+        }
 
-            /*// Insert a new place into DB
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(PlaceContract.PlaceEntry.COLUMN_PLACE_GOOGLE_ID, placeID);
-            getContentResolver().insert(PlaceContract.PlaceEntry.CONTENT_URI, contentValues);
+        // ------------------------------------------------------------------------ ENTER PLACE NAME
+        if (requestCode == PALCE_NAME_REQUEST ) {
+            assert  data.getExtras() != null;
+            String placeName = data.getExtras().getString(PALCE_NAME_DATA);
 
-            Log.d("placeID", "PlaceID: " + placeID);
+            assert placeName != null;
+            if(!placeName.equals(getString(R.string.cancel))){ // ------------------------------- OK
+                addPlaceToDB(placeName, placeID);
+            }else{ // ----------------------------------------------------------------------- CANCEL
 
-            // Get live data information
-            refreshPlacesData();*/
+                Toast.makeText(getActivity(),getString(R.string.add_place_cancel),
+                        Toast.LENGTH_LONG).show();
+            }
         }
     }
 
+    // --------------------------------------------------------------------------------------------- Writing Place to DB
+    private void addPlaceToDB(String placeName, String placeID){
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(PlacesContract.PlacesEntry.COLUMN_PLACE_GOOGLE_ID, placeID);
+        contentValues.put(PlacesContract.PlacesEntry.COLUMN_PLACE_NAME, placeName);
+        Uri uri = getActivity().getContentResolver()
+                .insert(PlacesContract.PlacesEntry.CONTENT_URI, contentValues);
+
+        assert uri != null;
+        int placeIDinDB = (Long.valueOf(uri.getLastPathSegment())).intValue(); // Get action sms ID
+
+        if(ifEnterFromAddReminder && placeWasAdded)closeFragment(placeName, placeIDinDB);
+    }
+
+    // --------------------------------------------------------------------------------------------- Show Dialog Place Name
+    private void showDialogPlaceName() {
+        DialogFragment dialogPlaceName = new DialogPlaceName();
+        //Bundle args = new Bundle();
+        //args.putInt(REMINDER_SETTINGS, CURRENT_SETTINGS);
+        //dialogPlaceName.setArguments(args);
+        dialogPlaceName.setTargetFragment(this, PALCE_NAME_REQUEST);
+        dialogPlaceName.show(getActivity().getSupportFragmentManager(), "dialog_place_name");
+    }
 
     @Override public void onDestroyView() {
         super.onDestroyView();
         unbinder.unbind();
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        /*if (ifEnterFromAddReminder) {
-            ((AddReminderActivity) getActivity()).onEnterFromSelectPlace(1);
-        }*/
-    }
-
     // ********************************************************************************************* Click on Places List
     @Override
     public void onClick(int position) {
         // click from listener
-        if (ifEnterFromAddReminder) {
-            int placeIDinDB = mPlacesList.get(position).getPlaceIDinDB();
+        if (ifEnterFromAddReminder) { // ------------------------------------------when Add Reminder
             String placeName = mPlacesList.get(position).getPlaceName();
-            ((AddReminderActivity) getActivity()).onEnterFromSelectPlace(placeIDinDB, placeName);
-
-            getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
+            int placeIDinDB = mPlacesList.get(position).getPlaceIDinDB();
+          closeFragment(placeName, placeIDinDB);
         }
+    }
+
+    private void closeFragment(String placeName, int placeIDinDB){
+        ((AddReminderActivity) getActivity()).onEnterFromSelectPlace(placeIDinDB, placeName);
+        getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
     }
 
     // *********************************************************************************************
@@ -289,6 +318,13 @@ public class PlacesFragment extends Fragment implements
         Cursor mPlacesData = (Cursor) loadedData;
         mPlacesList = AppContentProvider.placesListFromCursor(mPlacesData);
         adapter.setRemindersData(mPlacesList);
+
+
+        // if Place List is Empty - Enter to Add Place Dialog
+        if(ifEnterFromAddReminder && (mPlacesList.size() == 0) && (placeID == null)){
+            addPlace();
+            placeWasAdded = true;
+        }
     }
 
     @Override

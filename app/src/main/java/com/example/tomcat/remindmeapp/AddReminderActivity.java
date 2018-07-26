@@ -2,6 +2,7 @@ package com.example.tomcat.remindmeapp;
 
 import android.animation.ObjectAnimator;
 import android.content.ContentValues;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -19,7 +20,6 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.view.animation.Animation;
 import android.view.View;
 import android.view.animation.ScaleAnimation;
@@ -27,8 +27,9 @@ import android.view.animation.TranslateAnimation;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import com.example.tomcat.remindmeapp.data.PlacesContract;
+import com.example.tomcat.remindmeapp.data.ActionsContract;
 import com.example.tomcat.remindmeapp.data.RemindersContract;
 import com.example.tomcat.remindmeapp.places.PlacesFragment;
 
@@ -52,10 +53,9 @@ public class AddReminderActivity extends AppCompatActivity {
     @BindView(R.id.select_place_tv)
     com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight placeNameTxt;
 
-
-
-
     private Handler handlCountDown;
+    private boolean errorInput = false;
+    private int countBackClick = 0;
 
     public final static int REMIND_ALWAYS = 1;
     public final static int REMIND_ONCE = 2;
@@ -83,9 +83,8 @@ public class AddReminderActivity extends AppCompatActivity {
     static int CURRENT_SETTINGS = -1;
 
     final static int ACTION_REMIND_ONLY = 0;
-    final static int ACTION_SENS_SMS = 1;
+    final static int ACTION_SEND_SMS = 1;
     static int CURRENT_ACTION = 0;
-
 
     private String smsContact = null;
     private String smsNumber = null;
@@ -110,6 +109,7 @@ public class AddReminderActivity extends AppCompatActivity {
         addButton.setVisibility(View.VISIBLE);
 
 
+        // TODO Read and set Data on Edit
         if(CURRENT_SETTINGS == -1) CURRENT_SETTINGS = 250; // Set default settings > BIN: 11111100
 
         init();
@@ -167,27 +167,58 @@ public class AddReminderActivity extends AppCompatActivity {
         //inputTxt.setFocusable(false);
     }
 
+    private void addRemind() {
+        String remName = inputTxt.getText().toString();
+
+        if ((placeID < 0 || (remName.isEmpty()))) {
+
+            errorInput = true;
+
+            if (remName.isEmpty()) {
+                inputTxtLay.setError(getString(R.string.enter_reminder_txt));
+            } else {
+                inputTxtLay.setError(null);
+            }
+
+            if (placeID < 0) {
+                placeNameTxt.setTextColor(Color.RED);
+            }
+
+        } else {
+            writingData();
+            errorInput = false;
+        }
+    }
+
 
     private void writingData(){
+        int smsID;
         ContentValues contentValues = new ContentValues();
 
-        // ------------------------------------------------------------------------------------ Name
-        String remName = inputTxt.getText().toString();
-        //nie moze byc puste != null
-        if(remName.isEmpty()){
-            inputTxtLay.setError("Please enter valid address.");
+        // ----------------------------------------------------------------------------------------- Action SMS
+        if(CURRENT_ACTION == ACTION_SEND_SMS) {
+            contentValues.put(ActionsContract.ActionsEntry.COLUMN_SMS_CONTACT, smsContact);
+            contentValues.put(ActionsContract.ActionsEntry.COLUMN_SMS_NUMBER, smsNumber);
+            contentValues.put(ActionsContract.ActionsEntry.COLUMN_SMS_MESSAGE, smsMessage);
+            Uri uri = getContentResolver().insert(ActionsContract.ActionsEntry.CONTENT_URI, contentValues);
+
+            assert uri != null;
+            smsID = (Long.valueOf(uri.getLastPathSegment())).intValue(); // Get action sms ID
         }else{
-            inputTxtLay.setError(null);
-            contentValues.put(RemindersContract.RemindersEntry.COLUMN_NAME, remName);
+            smsID = -1;
         }
 
+        // ----------------------------------------------------------------------------------------- Reminder
+        contentValues.clear();
+        // ------------------------------------------------------------------------------------ Name
+        String remName = inputTxt.getText().toString();
+        contentValues.put(RemindersContract.RemindersEntry.COLUMN_NAME, remName);
 
         // ------------------------------------------------------------------- Remind when In or Out
         contentValues.put(RemindersContract.RemindersEntry.COLUMN_IN_OR_OUT, CURRENT_STATE);
 
         // -------------------------------------------------------------------------- Place ID in DB
         contentValues.put(RemindersContract.RemindersEntry.COLUMN_PLACES_DB_ID, placeID);
-        // nie moze byc puste / musi byc >=0
 
         // ---------------------------------------------------------------------- Reminder is ACTIVE
         contentValues.put(RemindersContract.RemindersEntry.COLUMNM_ACTIVE, REMIND_IS_ACTIVE);
@@ -198,31 +229,20 @@ public class AddReminderActivity extends AppCompatActivity {
         // ------------------------------------------------------------------------- Reminder ACTION
         contentValues.put(RemindersContract.RemindersEntry.COLUMN_REMIND_ACTION, CURRENT_ACTION);
 
+        // ---------------------------------------------------------------------------------- SMS ID
+        contentValues.put(RemindersContract.RemindersEntry.COLUMN_REMIND_SMS_ID, smsID);
 
         getContentResolver().insert(RemindersContract.RemindersEntry.CONTENT_URI, contentValues);
 
-        //Uri uri = getContentResolver().insert(RemindersContract.RemindersEntry.CONTENT_URI, contentValues);
+        //Uri uri = getContentResolver().insert(RemindersContract.RemindersEntry.CONTENT_URI,
+        // contentValues);
 
         /*if(uri != null) {
             Toast.makeText(getBaseContext(), uri.toString(), Toast.LENGTH_LONG).show();
         }else{
             Toast.makeText(getBaseContext(), "Error", Toast.LENGTH_SHORT).show();
         }*/
-
-
-        ////// TODO do zapisywania miejsca
-
-        // Add Place
-        contentValues.clear();
-        //ContentValues contentValues1 = new ContentValues();
-        contentValues.put(PlacesContract.PlacesEntry.COLUMN_PLACE_GOOGLE_ID, "colID777");
-        contentValues.put(PlacesContract.PlacesEntry.COLUMN_PLACE_NAME, "place nammee");
-        Uri uri1 = getContentResolver().insert(PlacesContract.PlacesEntry.CONTENT_URI, contentValues);
-
-
-        Log.d("TableErr", "333:" + PlacesContract.PlacesEntry.CONTENT_URI
-                + "   uri: " + uri1);
-
+        finish();
     }
 
     // ********************************************************************************************* Select Place
@@ -251,6 +271,7 @@ public class AddReminderActivity extends AppCompatActivity {
 
         this.placeID = placeID;
         placeNameTxt.setText(name);
+        placeNameTxt.setTextColor(Color.BLACK);
         handlCountDown.removeCallbacks(placesAnimTimer);
     }
 
@@ -277,7 +298,6 @@ public class AddReminderActivity extends AppCompatActivity {
             }
         }
     }
-
 
     // --------------------------------------------------------------------------------------------- Show Dialog Settings
     private void showDialogSettings() {
@@ -327,11 +347,10 @@ public class AddReminderActivity extends AppCompatActivity {
             String descr = getString(R.string.action_message_btn) + " " + smsContact;
             actionsDescrTxt.setVisibility(View.VISIBLE);
             actionsDescrTxt.setText(descr);
-            CURRENT_ACTION = ACTION_SENS_SMS;
+            CURRENT_ACTION = ACTION_SEND_SMS;
         }
         actionsTxt.setText(actions);
     }
-
 
     private void setInOutButtonsState(int currState){
         final TextView inTv = findViewById(R.id.in_tv);
@@ -443,9 +462,27 @@ public class AddReminderActivity extends AppCompatActivity {
         ovalImage.startAnimation(ovalAnim);
     }
 
+    public void addButton(View view){
+        addRemind();
+    }
+
     @Override
     public boolean onSupportNavigateUp(){
         onBackPressed();
         return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        addRemind();
+
+        if(errorInput && countBackClick < 1){
+            countBackClick++;
+        }else{
+            finish();
+            if(errorInput) Toast.makeText(getBaseContext(),
+                    R.string.no_reminder_data, Toast.LENGTH_LONG).show();
+        }
+
     }
 }

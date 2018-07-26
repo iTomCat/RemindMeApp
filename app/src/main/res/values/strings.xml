@@ -29,6 +29,8 @@
     <string name="select_place">Select place</string>
     <string name="remind_me_to">Remind me to:</string>
     <string name="notes">Notes</string>
+    <string name="enter_reminder_txt">Add the name of the reminder</string>
+    <string name="no_reminder_data">Addition of the reminder has been canceled</string>
 
     <string name="reminder_set">Reminder settings</string>
     <string name="remind_once">Remind me only once</string>
@@ -65,6 +67,9 @@
     <!--Add Place -->
     <string name="need_permission">You need to enable location permissions first</string>
     <string name="play_services_problem">Install or update Google Play Services in order to continue</string>
+    <string name="add_place_name">Add place name</string>
+    <string name="error_place_name">Enter the name of the place</string>
+    <string name="add_place_cancel">Adding space has been canceled</string>
 
 
 

@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import com.example.tomcat.remindmeapp.data.RemindersContract.*;
 
 /**
- * SQLite database with RemindersFragment
+ * SQLite database with Reminders
  */
 
 public class RemindersDb extends SQLiteOpenHelper {
@@ -29,6 +29,7 @@ public class RemindersDb extends SQLiteOpenHelper {
                 RemindersEntry.COLUMNM_ACTIVE + " INTEGER NOT NULL, " +
                 RemindersEntry.COLUMN_REMIND_SETTINGS + " INTEGER NOT NULL, " +
                 RemindersEntry.COLUMN_REMIND_ACTION + " INTEGER NOT NULL, " +
+                RemindersEntry.COLUMN_REMIND_SMS_ID + " INTEGER, " +
                 RemindersEntry.COLUMN_NOTES + " TEXT " +
                 "); ";
 

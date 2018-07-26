@@ -17,6 +17,7 @@
 
         <Button
             android:id="@+id/add_button"
+            android:onClick="addButton"
             android:layout_width="wrap_content"
             android:layout_height="40dp"
             android:layout_gravity="end"
@@ -144,6 +145,7 @@
                     android:id="@+id/text_input_txt"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxLines="2"
                     android:textSize="24sp"
                     app:hintTextAppearance="@color/colorPrimary" />
             </android.support.design.widget.TextInputLayout>
