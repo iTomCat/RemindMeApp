@@ -1,12 +1,15 @@
 package com.example.tomcat.remindmeapp.models;
 
-import com.example.tomcat.remindmeapp.data.RemindersContract;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 /**
  * Reminder Model
  */
 
-public class Reminder {
+public class Reminder implements Parcelable {
+
+    private int reminderIDinDB;
     private int inOut;
     private int placeId;
     private String name;
@@ -16,6 +19,41 @@ public class Reminder {
     private int smsID;
     private String notes;
 
+    public Reminder(){
+    }
+
+    private Reminder(Parcel in) {
+        reminderIDinDB = in.readInt();
+        inOut = in.readInt();
+        placeId = in.readInt();
+        name = in.readString();
+        active = in.readInt();
+        settings = in.readInt();
+        action = in.readInt();
+        smsID = in.readInt();
+        notes = in.readString();
+    }
+
+    public static final Creator<Reminder> CREATOR = new Creator<Reminder>() {
+        @Override
+        public Reminder createFromParcel(Parcel in) {
+            return new Reminder(in);
+        }
+
+        @Override
+        public Reminder[] newArray(int size) {
+            return new Reminder[size];
+        }
+    };
+
+    public int getRemIDinDB() {
+        return reminderIDinDB;
+    }
+    public void setRemIDinDB(int reminderIDinDB) {
+        this.reminderIDinDB = reminderIDinDB;
+    }
+
+    //@SuppressWarnings("unused")
     public int getInOut() {
         return inOut;
     }
@@ -70,5 +108,23 @@ public class Reminder {
     }
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeInt(reminderIDinDB);
+        parcel.writeInt(inOut);
+        parcel.writeInt(placeId);
+        parcel.writeString(name);
+        parcel.writeInt(active);
+        parcel.writeInt(settings);
+        parcel.writeInt(action);
+        parcel.writeInt(smsID);
+        parcel.writeString(notes);
     }
 }

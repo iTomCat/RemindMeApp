@@ -27,7 +27,7 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.ViewHolder
 
 
     public interface PlacesAdapterOnClickHandler {
-        void onClick(int position);
+        void onClick(int position, boolean longClick);
     }
 
 
@@ -52,22 +52,27 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.ViewHolder
         @Override
         public void onClick(View v) {
             int adapterPosition = getAdapterPosition();
-            mClickHandler.onClick(adapterPosition);
+            mClickHandler.onClick(adapterPosition, false);
         }
 
 
         @Override
         public boolean onLongClick(View view) {
-            int adapterPosition = getAdapterPosition();
-            mClickHandler.onClick(adapterPosition);
+            //int adapterPosition = getAdapterPosition();
+            int tag = (int) view.getTag();
+            mClickHandler.onClick(tag, true);
             return false;
         }
     }
+
 
     @Override
     public void onBindViewHolder(PlacesAdapter.ViewHolder holder, int position) {
         String name = mPlacesData.get(position).getPlaceName();
         holder.placeNameTxt.setText(name);
+
+        int id = mPlacesData.get(position).getPlaceIDinDB();
+        holder.itemView.setTag(id);
     }
 
     @Override
@@ -79,5 +84,9 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.ViewHolder
     void setRemindersData(List<Places> placesData) {
         mPlacesData = placesData;
         notifyDataSetChanged();
+    }
+
+    void refresh(){
+        this.notifyDataSetChanged();
     }
 }

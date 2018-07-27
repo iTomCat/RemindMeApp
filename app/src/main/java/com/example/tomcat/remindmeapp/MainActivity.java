@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity implements
         //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         //CustomViewPager viewPager = findViewById(R.id.viewpager);
-        viewPager.setPagingEnabled(false);
+        viewPager.setPagingEnabled(true); //Swipe on/off
         setupViewPager(viewPager);
 
         //TabLayout tabLayout = findViewById(R.id.tabs);
@@ -136,6 +136,9 @@ public class MainActivity extends AppCompatActivity implements
         if (currentPage == 0){ // ------------------------------------------------------------------ + action for RemindersFragment
             Intent addReminderIntent = new Intent(MainActivity.this,
                     AddReminderActivity.class);
+            Bundle mBundle = new Bundle();
+            mBundle.putInt(AddReminderActivity.NEW_OR_EDIT, AddReminderActivity.NEW_REMINDER);
+            addReminderIntent.putExtras(mBundle);
             startActivity(addReminderIntent);
 
         }else {  // -------------------------------------------------------------------------------- + action for PlacesFragment

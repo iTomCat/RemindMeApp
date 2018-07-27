@@ -1,6 +1,5 @@
 package com.example.tomcat.remindmeapp;
 
-import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -30,7 +29,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
 
     public interface ReminderAdapterOnClickHandler {
-        void onClick(int position);
+        void onClick(int position, boolean longClick);
     }
 
 
@@ -42,10 +41,10 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener{
         @BindView(R.id.tv_name)
-        com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight remNameTxt;;
+        com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight remNameTxt;
 
         @BindView(R.id.tv_descr)
-        com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight placeNameTxt;;
+        com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight placeNameTxt;
 
         ViewHolder(View view) {
             super(view);
@@ -59,15 +58,15 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         @Override
         public void onClick(View v) {
             int adapterPosition = getAdapterPosition();
-            mClickHandler.onClick(adapterPosition);
+            mClickHandler.onClick(adapterPosition, false);
         }
 
 
         @Override
         public boolean onLongClick(View view) {
-            int adapterPosition = getAdapterPosition();
-            mClickHandler.onClick(adapterPosition);
-            Log.d("RemFrag", "Long" );
+            //int adapterPosition = getAdapterPosition();
+            int tag = (int) view.getTag();
+            mClickHandler.onClick(tag, true);
             return false;
         }
     }
@@ -75,22 +74,26 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
     @Override
     public void onBindViewHolder(ReminderAdapter.ViewHolder holder, int position) {
         String descr = mRemindersData.get(position).getName();
-        Context context = holder.itemView.getContext();
+        //Context context = holder.itemView.getContext();
         holder.remNameTxt.setText(descr);
 
+        int id = mRemindersData.get(position).getRemIDinDB();
+        holder.itemView.setTag(id);
+
+        // ----------------------------------------------------------- Get data from DB Places by ID
         int currPlaceID = mRemindersData.get(position).getPlaceID();
-        int posonListByID = -1;
-        // get data from DB Places by ID
+        int posOnListByID = -1;
+        //
         for(int i=0; i<mPlacesData.size(); i++){
            int currIDinDB = mPlacesData.get(i).getPlaceIDinDB();
             if (currIDinDB == currPlaceID){
-                posonListByID = i;
+                posOnListByID = i;
                 break;
            }
         }
 
-        if (posonListByID >= 0 ) {
-            String placeName = mPlacesData.get(posonListByID).getPlaceName();
+        if (posOnListByID >= 0 ) {
+            String placeName = mPlacesData.get(posOnListByID).getPlaceName();
             holder.placeNameTxt.setText(placeName);
         }
 
@@ -136,5 +139,9 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         mRemindersData = moviesData;
         mPlacesData = placesData;
         notifyDataSetChanged();
+    }
+
+    void refresh(){
+        this.notifyDataSetChanged();
     }
 }

@@ -20,17 +20,22 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.animation.Animation;
 import android.view.View;
 import android.view.animation.ScaleAnimation;
 import android.view.animation.TranslateAnimation;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.tomcat.remindmeapp.data.ActionsContract;
 import com.example.tomcat.remindmeapp.data.RemindersContract;
+import com.example.tomcat.remindmeapp.models.Actions;
+import com.example.tomcat.remindmeapp.models.Places;
+import com.example.tomcat.remindmeapp.models.Reminder;
 import com.example.tomcat.remindmeapp.places.PlacesFragment;
 
 import java.util.Random;
@@ -50,6 +55,7 @@ public class AddReminderActivity extends AppCompatActivity {
     @BindView(R.id.reminder_actions) ConstraintLayout actionsButton;
     @BindView(R.id.text_input_lay) TextInputLayout inputTxtLay;
     @BindView(R.id.text_input_txt) TextInputEditText inputTxt;
+    @BindView(R.id.notes_input) EditText notesTxt;
     @BindView(R.id.select_place_tv)
     com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight placeNameTxt;
 
@@ -92,45 +98,81 @@ public class AddReminderActivity extends AppCompatActivity {
 
     private int placeID = -1;
 
+    public final static String SELECTED_REMINDER = "sel_rem";
+    public final static String NEW_OR_EDIT = "new_edit";
+    public final static String SELECTED_PLACE = "sel_place";
+    public final static String SELECTED_ACTION = "sel_action";
+    public final static int NEW_REMINDER = 1;
+    public final static int EDIT_REMINDER = 2;
+    int editOrNewRem;
+    int reminderID = -1;
+    int actionID = -1;
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_remind);
         ButterKnife.bind(this);
+        init();
+
+        assert getIntent().getExtras() != null;
+        editOrNewRem = getIntent().getExtras().getInt(NEW_OR_EDIT);
+        String title = null;
+
+        switch(editOrNewRem) {
+            case NEW_REMINDER: // ----------------------------------------------------------------- NEW REMONDER
+                title = getString(R.string.add_new_reminder);
+                CURRENT_SETTINGS = 250;
+                break;
+
+            case EDIT_REMINDER: // ----------------------------------------------------------------- EDIT REMONDER
+                title = getString(R.string.edit_reminder);
+
+                Reminder selecterReminder = getIntent().getParcelableExtra(SELECTED_REMINDER);
+                Places selectPlace = getIntent().getParcelableExtra(SELECTED_PLACE);
+
+                reminderID = selecterReminder.getRemIDinDB();
+
+                placeNameTxt.setText(selectPlace.getPlaceName()); // ------------------------- Place
+                placeID = selecterReminder.getPlaceID();
+
+                CURRENT_STATE = selecterReminder.getInOut(); // -------------------------- In or OUT
+                inputTxt.setText(selecterReminder.getName()); // --------------------- Reminder name
+
+                CURRENT_SETTINGS = selecterReminder.getSettings(); // --------------------- Settings
+
+                CURRENT_ACTION = selecterReminder.getAction();  // -------------------------- Action
+
+                if (CURRENT_ACTION == ACTION_SEND_SMS) {  // ----------------------------------- SMS
+                    Actions action = getIntent().getParcelableExtra(SELECTED_ACTION);
+                    actionID = action.getActionIDinDB();
+                    smsContact = action.getSmsContact();
+                }
+                notesTxt.setText(selecterReminder.getNotes());  // --------------------------- NOTES
+
+            default:
+                break;
+        }
+
+        setInfoOnSettings();
+        setInfoOnAction();
 
         Toolbar toolbar =  findViewById(R.id.my_toolbar);
         setSupportActionBar(toolbar);
         assert getSupportActionBar() != null;
         getSupportActionBar().setDisplayShowTitleEnabled(true);
-        getSupportActionBar().setTitle(getString(R.string.add_new_reminder));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
+        getSupportActionBar().setTitle(title);
         addButton.setVisibility(View.VISIBLE);
 
 
         // TODO Read and set Data on Edit
-        if(CURRENT_SETTINGS == -1) CURRENT_SETTINGS = 250; // Set default settings > BIN: 11111100
+        //if(CURRENT_SETTINGS == -1) CURRENT_SETTINGS = 250; // Set default settings > BIN: 11111100
 
-        init();
+
         setInOutButtonsState(CURRENT_STATE);
-
-        /*if(tiet.getText().toString().isEmpty()){
-            til.setError("Please enter valid address.");
-        }else{
-            til.setError(null);
-        }*/
-
-        /*Uri uri = Uri.parse("smsto:732660660");
-        Intent it = new Intent(Intent.ACTION_SENDTO, uri);
-        it.putExtra("sms_body", "The SMS text");
-        startActivity(it);*/
-
-
-        /*String input = ((EditText) findViewById(R.id.editTextTaskDescription)).getText().toString();
-        if (input.length() == 0) {
-        return;
-        }*/
     }
     private void init(){
         handlCountDown = new Handler();
@@ -151,9 +193,6 @@ public class AddReminderActivity extends AppCompatActivity {
         actionsButton.setClickable(true);
         actionsButton.setOnClickListener(new actionsAndSettingsListener());
         actionsButton.setTag(REMINDER_ACTIONS);
-        setInfoOnActionButton();
-
-        setSettingsAndActions();
 
         // ----------------------------------------------- Displaying a random example of a reminder
         inputTxtLay = findViewById(R.id.text_input_lay);
@@ -167,6 +206,7 @@ public class AddReminderActivity extends AppCompatActivity {
         //inputTxt.setFocusable(false);
     }
 
+    // --------------------------------------------------------------------------------------------- Add Remind
     private void addRemind() {
         String remName = inputTxt.getText().toString();
 
@@ -190,22 +230,31 @@ public class AddReminderActivity extends AppCompatActivity {
         }
     }
 
-
+    // --------------------------------------------------------------------------------------------- Writing Data to DB
     private void writingData(){
         int smsID;
         ContentValues contentValues = new ContentValues();
 
         // ----------------------------------------------------------------------------------------- Action SMS
+        smsID = -1;
         if(CURRENT_ACTION == ACTION_SEND_SMS) {
             contentValues.put(ActionsContract.ActionsEntry.COLUMN_SMS_CONTACT, smsContact);
             contentValues.put(ActionsContract.ActionsEntry.COLUMN_SMS_NUMBER, smsNumber);
             contentValues.put(ActionsContract.ActionsEntry.COLUMN_SMS_MESSAGE, smsMessage);
-            Uri uri = getContentResolver().insert(ActionsContract.ActionsEntry.CONTENT_URI, contentValues);
 
-            assert uri != null;
-            smsID = (Long.valueOf(uri.getLastPathSegment())).intValue(); // Get action sms ID
-        }else{
-            smsID = -1;
+            if (editOrNewRem == NEW_REMINDER || editOrNewRem == EDIT_REMINDER) {
+                Uri uri = getContentResolver().insert(ActionsContract.ActionsEntry.CONTENT_URI, contentValues);
+                assert uri != null;
+                smsID = (Long.valueOf(uri.getLastPathSegment())).intValue(); // Get action sms ID
+            }
+
+            if (editOrNewRem == EDIT_REMINDER && actionID > 0) {
+                String stringId = Integer.toString(actionID);
+                Uri uriEdit = ActionsContract.ActionsEntry.CONTENT_URI;
+                uriEdit = uriEdit.buildUpon().appendPath(stringId).build();
+
+                getContentResolver().update(uriEdit, contentValues, null, null);
+            }
         }
 
         // ----------------------------------------------------------------------------------------- Reminder
@@ -232,7 +281,23 @@ public class AddReminderActivity extends AppCompatActivity {
         // ---------------------------------------------------------------------------------- SMS ID
         contentValues.put(RemindersContract.RemindersEntry.COLUMN_REMIND_SMS_ID, smsID);
 
-        getContentResolver().insert(RemindersContract.RemindersEntry.CONTENT_URI, contentValues);
+        // ----------------------------------------------------------------------------------- NOTES
+        String notes = notesTxt.getText().toString();
+        contentValues.put(RemindersContract.RemindersEntry.COLUMN_NOTES, notes);
+
+        if (editOrNewRem == NEW_REMINDER) {
+            getContentResolver().insert(RemindersContract.RemindersEntry.CONTENT_URI, contentValues);
+        }
+
+        if (editOrNewRem == EDIT_REMINDER) {
+            String stringId = Integer.toString(reminderID);
+            Uri uri = RemindersContract.RemindersEntry.CONTENT_URI;
+            uri = uri.buildUpon().appendPath(stringId).build();
+
+            getContentResolver().update(uri, contentValues, null, null);
+        }
+
+
 
         //Uri uri = getContentResolver().insert(RemindersContract.RemindersEntry.CONTENT_URI,
         // contentValues);
@@ -311,7 +376,7 @@ public class AddReminderActivity extends AppCompatActivity {
     // Get data from Dialog Settings
     public void onSettingsChanges(int dataSettings) {
         CURRENT_SETTINGS = dataSettings;
-        setSettingsAndActions();
+        setInfoOnSettings();
     }
 
     // --------------------------------------------------------------------------------------------- Show Dialog Actions
@@ -330,10 +395,10 @@ public class AddReminderActivity extends AppCompatActivity {
         this.smsNumber = smsNumber;
         this.smsMessage = smsMessage;
 
-        setInfoOnActionButton();
+        setInfoOnAction();
     }
 
-    private void setInfoOnActionButton(){
+    private void setInfoOnAction(){
         // ----------------------------------------------------------------------------------------- ACTIONS
         final TextView actionsTxt = findViewById(R.id.action_tv);
         final TextView actionsDescrTxt = findViewById(R.id.action_desc_tv);
@@ -377,7 +442,7 @@ public class AddReminderActivity extends AppCompatActivity {
 
 
     // ********************************************************************************************* Settings And Actions
-    private void setSettingsAndActions(){
+    private void setInfoOnSettings(){
         final TextView weekDays = findViewById(R.id.week_days);
         weekDays.setVisibility(View.GONE);
 

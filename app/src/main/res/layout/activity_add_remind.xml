@@ -177,7 +177,7 @@
 
 
             <EditText
-                android:id="@+id/reminder_actions2"
+                android:id="@+id/notes_input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/notes"

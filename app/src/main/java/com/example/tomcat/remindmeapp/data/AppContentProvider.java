@@ -10,6 +10,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import com.example.tomcat.remindmeapp.models.Actions;
 import com.example.tomcat.remindmeapp.models.Places;
@@ -199,13 +200,88 @@ public class AppContentProvider extends ContentProvider{
 
     @Override
     public int delete(@NonNull Uri uri, @Nullable String s, @Nullable String[] strings) {
-        return 0;
+        int match = sUriMatcher.match(uri);
+
+        // Keep track of the number of deleted tasks
+        int tasksDeleted; // starts as 0
+
+        // Write the code to delete a single row of data
+        // [Hint] Use selections to delete an item by its row ID
+        switch (match) {
+            // Handle the single item case, recognized by the ID included in the URI path
+            case REMINDER_WITH_ID:
+                final SQLiteDatabase dbRem = remindersDb.getWritableDatabase();
+                // Get the task ID from the URI path
+                String id = uri.getPathSegments().get(1);
+                // Use selections/selectionArgs to filter for this ID
+                tasksDeleted = dbRem.delete(RemindersContract.RemindersEntry.TABLE_NAME,
+                        "_id=?", new String[]{id});
+                break;
+
+            case PLACES_WITH_ID:
+                final SQLiteDatabase dbPlaces = placesDb.getWritableDatabase();
+                // Get the task ID from the URI path
+                String idPlaces = uri.getPathSegments().get(1);
+                // Use selections/selectionArgs to filter for this ID
+                tasksDeleted = dbPlaces.delete(PlacesContract.PlacesEntry.TABLE_NAME,
+                        "_id=?", new String[]{idPlaces});
+                break;
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+
+        // Notify the resolver of a change and return the number of items deleted
+        if (tasksDeleted != 0) {
+            // A task was deleted, set notification
+            assert getContext() != null;
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return tasksDeleted;
     }
 
     @Override
     public int update(@NonNull Uri uri, @Nullable ContentValues contentValues,
                       @Nullable String s, @Nullable String[] strings) {
-        return 0;
+        //Keep track of if an update occurs
+        int tasksUpdated;
+
+        // match code
+        int match = sUriMatcher.match(uri);
+
+        switch (match) {
+            case REMINDER_WITH_ID:
+                final SQLiteDatabase dbRem = remindersDb.getWritableDatabase();
+                String id = uri.getPathSegments().get(1);
+
+                tasksUpdated = dbRem.update(RemindersContract.RemindersEntry.TABLE_NAME,
+                        contentValues,
+                        "_id=?", new String[]{id});
+
+                break;
+
+            case ACTIONS_WITH_ID:
+                final SQLiteDatabase dbAction = actionsDb.getWritableDatabase();
+                String idAction = uri.getPathSegments().get(1);
+
+                tasksUpdated = dbAction.update(ActionsContract.ActionsEntry.TABLE_NAME,
+                        contentValues,
+                        "_id=?", new String[]{idAction});
+
+                break;
+
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+
+        if (tasksUpdated != 0) {
+            //set notifications if a task was updated
+            assert getContext() != null;
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        // return number of tasks updated
+        return tasksUpdated;
     }
 
 
@@ -215,6 +291,9 @@ public class AppContentProvider extends ContentProvider{
 
         for(cursor.moveToFirst(); !cursor.isAfterLast(); cursor.moveToNext()) {
             Reminder reminder = new Reminder();
+
+            int IDinDB = cursor.getColumnIndex(RemindersContract.RemindersEntry._ID);
+            reminder.setRemIDinDB(cursor.getInt(IDinDB));
 
             int inOut = cursor.getColumnIndex(RemindersContract.RemindersEntry.COLUMN_IN_OR_OUT);
             reminder.setInOut(cursor.getInt(inOut));

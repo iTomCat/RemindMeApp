@@ -18,9 +18,10 @@
     <string name="your_places">Your Places</string>
 
 
-    <!--Add Reminder -->
+    <!-- Reminders -->
     <string name="warning_permission">Until you grant the permission, we canot display the Contacts</string>
     <string name="add_new_reminder">Add a New Reminder</string>
+    <string name="edit_reminder">Edit Reminder</string>
     <string name="add">Add</string>
     <string name="ok">Ok</string>
     <string name="cancel">Cancel</string>
@@ -31,6 +32,9 @@
     <string name="notes">Notes</string>
     <string name="enter_reminder_txt">Add the name of the reminder</string>
     <string name="no_reminder_data">Addition of the reminder has been canceled</string>
+    <string name="removing_reminder">Removing the reminder</string>
+    <string name="removing_reminder_message">Do you want to delete a reminder from the list</string>
+    <string name="detail_error_message">Reminderata not available</string>
 
     <string name="reminder_set">Reminder settings</string>
     <string name="remind_once">Remind me only once</string>
@@ -64,12 +68,17 @@
     <string name="enter_message_btn">send sms to:</string>
     <string name="action_message_btn">Sending sms to:</string>
 
-    <!--Add Place -->
+    <!--Place -->
     <string name="need_permission">You need to enable location permissions first</string>
     <string name="play_services_problem">Install or update Google Play Services in order to continue</string>
     <string name="add_place_name">Add place name</string>
     <string name="error_place_name">Enter the name of the place</string>
     <string name="add_place_cancel">Adding space has been canceled</string>
+    <string name="removing_place">Removing the place</string>
+    <string name="removing_place_header2">Delete reminders associated with a place</string>
+    <string name="removing_place_message">Do you want to delete a place from the list</string>
+    <string name="removing_place_in_reminders">The place you want to delete is used in the reminders: </string>
+    <string name="removing_place_in_reminders_end">Deleting a place also removes these reminders</string>
 
 
 

@@ -1,23 +1,28 @@
 package com.example.tomcat.remindmeapp;
 
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.tomcat.remindmeapp.data.ActionsContract;
 import com.example.tomcat.remindmeapp.data.AppContentProvider;
 import com.example.tomcat.remindmeapp.data.PlacesContract;
 import com.example.tomcat.remindmeapp.data.RemindersContract;
+import com.example.tomcat.remindmeapp.models.Actions;
 import com.example.tomcat.remindmeapp.models.Places;
 import com.example.tomcat.remindmeapp.models.Reminder;
 
@@ -33,14 +38,15 @@ public class RemindersFragment extends Fragment implements
 
     public ReminderAdapter.ReminderAdapterOnClickHandler mClickHandler = this;
 
-
     private final static int REMINDERS_ID_LOADER = 24;
     private final static int PLACES_ID_LOADER = 26;
+    private final static int ACTIONS_ID_LOADER = 28;
 
-    public static final String SORT_ORDER = "sort";
     private List<Reminder> mReminderList = null;
-    private List<Places> mPlacesList = null;
+    List<Places> mPlacesList = null;
+    List<Actions> mActionsList = null;
     private ReminderAdapter adapter;
+    public static Cursor mRemindersData;
 
     public RemindersFragment(){
     }
@@ -65,21 +71,14 @@ public class RemindersFragment extends Fragment implements
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setAdapter(adapter);
 
-        /*
-         Add a touch helper to the RecyclerView to recognize when a user swipes to delete an item.
-         An ItemTouchHelper enables touch behavior (like swipe and move) on each ViewHolder,
-         and uses callbacks to signal when a user is performing these actions.
-         */
-        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+       /* new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                Log.d("RemFrag", "Moved " );
                 return false;
             }
 
             @Override
             public boolean isLongPressDragEnabled() {
-                Log.d("RemFrag", "Long Presed " );
                 return super.isLongPressDragEnabled();
             }
 
@@ -87,29 +86,8 @@ public class RemindersFragment extends Fragment implements
             @Override
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
                 // Here is where you'll implement swipe to delete
-                Log.d("RemFrag", "Swipped " + swipeDir);
-
             }
-
-
-           /* @Override
-            public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-                if (viewHolder.getItemViewType() == ITEM_TYPE_ACTION_WIDTH_NO_SPRING) return 0;
-                return makeMovementFlags(ItemTouchHelper.UP|ItemTouchHelper.DOWN,
-                        ItemTouchHelper.START|ItemTouchHelper.END);
-            }*/
-
-          /*  @Override
-            public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-                if (viewHolder instanceof ReminderAdapter.ViewHolder){
-                    Log.d("RemFrag", "aaaaa" );
-                    return 0;
-                }
-                Log.d("RemFrag", "bbbb" );
-                return super.getSwipeDirs(recyclerView, viewHolder);
-            }
-            */
-        }).attachToRecyclerView(mRecyclerView);
+        }).attachToRecyclerView(mRecyclerView);*/
 
 
         return view;
@@ -117,114 +95,151 @@ public class RemindersFragment extends Fragment implements
 
     // ********************************************************************************************* Click on Reminder List
     @Override
-    public void onClick(int position) {
-        Log.d("RemFrag", "Button List " + position);
+    public void onClick(int position,  boolean logngClick) {
+
+        if(logngClick){ // ------------------------------------------------------------------------- Long Click - DELETE REMINDER
+            deleteReminder(position);
+        }else{ // ---------------------------------------------------------------------------------- Click - EDIT REMINDER
+            Reminder selectedReminder =  mReminderList.get(position);
+
+            Intent intent = new Intent(getActivity(), AddReminderActivity.class);
+            intent.putExtra(AddReminderActivity.SELECTED_REMINDER, selectedReminder);
+
+            Bundle extras = intent.getExtras();
+            assert extras != null;
+            Bundle mBundle = new Bundle();
+
+            mBundle.putInt(AddReminderActivity.NEW_OR_EDIT, AddReminderActivity.EDIT_REMINDER);
+
+            // -------------------------------------------------------------------------- Place Name
+            int currPlaceID = selectedReminder.getPlaceID();
+            int posOnListByID = -1;
+            //
+            for(int i=0; i<mPlacesList.size(); i++){
+                int currIDinDB = mPlacesList.get(i).getPlaceIDinDB();
+                if (currIDinDB == currPlaceID){
+                    posOnListByID = i;
+                    break;
+                }
+            }
+
+            Places selectedPlace =  mPlacesList.get(posOnListByID);
+            intent.putExtra(AddReminderActivity.SELECTED_PLACE, selectedPlace);
+
+            // ------------------------------------------------------------------------- Actions SMS
+            if (selectedReminder.getAction() == AddReminderActivity.ACTION_SEND_SMS){
+                int currActionID = selectedReminder.getSmsID();
+                int posOnListByIDAction = -1;
+                //
+                for(int i=0; i<mActionsList.size(); i++){
+                    int currIDinDB = mActionsList.get(i).getActionIDinDB();
+                    if (currIDinDB == currActionID){
+                        posOnListByIDAction = i;
+                        break;
+                    }
+                }
+                Actions selectedAction =  mActionsList.get(posOnListByIDAction);
+                intent.putExtra(AddReminderActivity.SELECTED_ACTION, selectedAction);
+            }
+
+            intent.putExtras(mBundle);
+            startActivity(intent);
+        }
+    }
+
+    // --------------------------------------------------------------------------------------------- Delete Reminder
+    private void deleteReminder(final int position){
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle(getString(R.string.removing_reminder));
+        builder.setMessage(R.string.removing_reminder_message);
+
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+
+                String stringId = Integer.toString(position);
+                Uri uri = RemindersContract.RemindersEntry.CONTENT_URI;
+                uri = uri.buildUpon().appendPath(stringId).build();
+
+                getActivity().getContentResolver().delete(uri, null, null);
+
+                loadFromDB(REMINDERS_ID_LOADER);
+            }
+        });
+
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        makeMovieSearchQuery(REMINDERS_ID_LOADER);
+        loadFromDB(REMINDERS_ID_LOADER);
     }
-
 
 
     // *********************************************************************************************
     // ********************************************************************************************* Start Load
-    private void makeMovieSearchQuery(int laoder) {
-        //Bundle queryBundle = new Bundle();
-        //queryBundle.putInt(SEARCH_QUERY_URL_EXTRA, sortOrder);
-        //queryBundle.putInt(SORT_ORDER, sortOrder);
+    private void loadFromDB(int laoder) {
         LoaderManager loaderManager = getActivity().getSupportLoaderManager();
-        int currLoadID = REMINDERS_ID_LOADER;
-
-        switch(laoder) {
-            case REMINDERS_ID_LOADER:
-                currLoadID = REMINDERS_ID_LOADER;
-                break;
-            case PLACES_ID_LOADER:
-                currLoadID = PLACES_ID_LOADER;
-            default: break;
-        }
-
-        Object movieSearchLoader = loaderManager.getLoader(currLoadID);
+        Object movieSearchLoader = loaderManager.getLoader(laoder);
         if (movieSearchLoader == null){
             //loaderManager.initLoader(REMINDERS_ID_LOADER, queryBundle, this);
-            loaderManager.initLoader(currLoadID, null, this);
+            loaderManager.initLoader(laoder, null, this);
         }else {
-            loaderManager.restartLoader(currLoadID, null, this);
+            loaderManager.restartLoader(laoder, null, this);
         }
-
     }
 
     // --------------------------------------------------------------------------------------------- Async Task Loader
     @Override
     public Loader onCreateLoader(int id, Bundle args) {
-        //mLoadingIndicator.setVisibility(View.VISIBLE);
-       // int currSortOrder = args.getInt(SORT_ORDER);
+        switch(id) {
+            default: // ------------------------------------------------------------- Load REMINDERS
+                return new CursorLoader(getActivity(),
+                        RemindersContract.RemindersEntry.CONTENT_URI,
+                        null,
+                        null,
+                        null,
+                        null);
 
-       /* // ---------------------------------------------------------------- Load POPULAR / TOP RATED
-        if ((NetworkUtils.checkInternetConnect(this)
-                && (currSortOrder == POPULAR) || (currSortOrder == TOP_RATED))) {
-            return new MovieLoader(this, args.getInt(SEARCH_QUERY_URL_EXTRA));
+            case PLACES_ID_LOADER: // -------------------------------------------------- Load PLACES
+                return new CursorLoader(getActivity(),
+                        PlacesContract.PlacesEntry.CONTENT_URI,
+                        null,
+                        null,
+                        null,
+                        null);
 
-            // -------------------------------------------------------------------------- Load FAVORITES
-        } else {
-            return new CursorLoader(this, MovieContract.MovieEntry.CONTENT_URI,
-                    null, null, null, null);
-        }*/
-
-        if (id == REMINDERS_ID_LOADER) { // -------------------------------------------------------- Load REMINDERS
-            return new CursorLoader(getActivity(),
-                    RemindersContract.RemindersEntry.CONTENT_URI,
-                    null,
-                    null,
-                    null,
-                    null);
-
-
-        } else { // -------------------------------------------------------------------------------- Load PLACES
-            return new CursorLoader(getActivity(),
-                    PlacesContract.PlacesEntry.CONTENT_URI,
-                    null,
-                    null,
-                    null,
-                    null);
+            case ACTIONS_ID_LOADER: // ------------------------------------------------ Load Actions
+                return new CursorLoader(getActivity(),
+                        ActionsContract.ActionsEntry.CONTENT_URI,
+                        null,
+                        null,
+                        null,
+                        null);
         }
     }
 
-    //@SuppressWarnings("unchecked")
     @Override
     public void onLoadFinished(Loader loader, Object loadedData) {
-        //mLoadingIndicator.setVisibility(View.INVISIBLE);
-
-        /*if ((selectedSort == POPULAR) || (selectedSort == TOP_RATED)) {
-            mMovieAdapter.setRemindersData((List<Movie>) loadedData);
-            mReminderList = (List<Movie>) loadedData;
-        } else if (selectedSort == FAVORITES){
-            Cursor mFavoritesData = (Cursor) loadedData;
-            mReminderList = MovieContentProvider.remindersListFromCursor(mFavoritesData);
-            mMovieAdapter.setRemindersData(mReminderList);
-        }
-
-        if (listPos == 0) {
-            mRecyclerView.smoothScrollToPosition(listPos);
-        } else {
-            mRecyclerView.scrollToPosition(listPos);
-        }*/
-
-        /*Cursor mFavoritesData;
-        mFavoritesData = (Cursor) loadedData;*/
-
         switch (loader.getId()) {
             case REMINDERS_ID_LOADER:
-                Cursor mRemindersData = (Cursor) loadedData;
-                // do some stuff here
+                mRemindersData = (Cursor) loadedData;
                 mReminderList = AppContentProvider.remindersListFromCursor(mRemindersData);
-                makeMovieSearchQuery(PLACES_ID_LOADER); // Start Load Places form DB
+                loadFromDB(ACTIONS_ID_LOADER); // Start Load Actions form DB
+                break;
+            case ACTIONS_ID_LOADER:
+                Cursor mActionsData = (Cursor) loadedData;
+                mActionsList = AppContentProvider.actionsListFromCursor(mActionsData);
+                loadFromDB(PLACES_ID_LOADER); // Start Load Places form DB
                 break;
             case PLACES_ID_LOADER:
-                // do some other stuff here
                 Cursor mPlacesData = (Cursor) loadedData;
                 mPlacesList = AppContentProvider.placesListFromCursor(mPlacesData);
                 adapter.setRemindersData(mReminderList, mPlacesList);
@@ -232,56 +247,14 @@ public class RemindersFragment extends Fragment implements
             default:
                 break;
         }
-
-        //Cursor mFavoritesData = (Cursor) loadedData;
-        //mReminderList = AppContentProvider.remindersListFromCursor(mFavoritesData);
-        //adapter.setRemindersData(mReminderList);
-
-
         //mRecyclerView.smoothScrollToPosition(listPos);
-
-
     }
 
     @Override
     public void onLoaderReset(Loader loader) {
 
-        //TODO MAKE LOAD RESET
+        //TODO MAKE LOAD RESET  -- w popular movie jest pusty
+        Log.d("RemFrag", "RESET " );
+        adapter.refresh();
     }
-
-    // ********************************************************************************************* Async Task Loader Class for POPULAR & TOP RATED
-    /*static class MovieLoader extends AsyncTaskLoader<List<Movie>> {
-        private int sortOrder;
-
-        MovieLoader(Context context, int sortOrder) {
-            super(context);
-            this.sortOrder = sortOrder;
-        }
-
-        @Override
-        protected void onStartLoading(){
-            super.onStartLoading();
-            forceLoad();
-        }
-
-        @Override
-        public List<Movie> loadInBackground() {
-            String dataFromMovieDB = NetworkUtils.getDataFromMoveDB(sortOrder);
-            List<Movie> moviesList = null;
-
-            if (dataFromMovieDB != null) {
-                try {
-                    moviesList = JSONUtilis.parseMovieJson(dataFromMovieDB);
-                    Log.d("dataTest", "Data from MovieDB: " + dataFromMovieDB);
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-            }else {
-                return null;
-            }
-            return moviesList;
-        }
-    }*/
 }

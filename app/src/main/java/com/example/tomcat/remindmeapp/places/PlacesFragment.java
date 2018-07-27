@@ -1,6 +1,7 @@
 package com.example.tomcat.remindmeapp.places;
 
 import android.content.ContentValues;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -14,6 +15,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
@@ -27,13 +29,18 @@ import android.widget.Toast;
 import com.example.tomcat.remindmeapp.AddReminderActivity;
 import com.example.tomcat.remindmeapp.MainActivity;
 import com.example.tomcat.remindmeapp.R;
+import com.example.tomcat.remindmeapp.RemindersFragment;
 import com.example.tomcat.remindmeapp.data.AppContentProvider;
 import com.example.tomcat.remindmeapp.data.PlacesContract;
+import com.example.tomcat.remindmeapp.data.RemindersContract;
 import com.example.tomcat.remindmeapp.models.Places;
+import com.example.tomcat.remindmeapp.models.Reminder;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
@@ -68,6 +75,7 @@ public class PlacesFragment extends Fragment implements
     private Unbinder unbinder;
     private boolean ifEnterFromAddReminder = false;
     private boolean placeWasAdded = false;
+    //Cursor mRemindersData = null;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -90,12 +98,8 @@ public class PlacesFragment extends Fragment implements
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setAdapter(adapter);
 
-        /*
-         Add a touch helper to the RecyclerView to recognize when a user swipes to delete an item.
-         An ItemTouchHelper enables touch behavior (like swipe and move) on each ViewHolder,
-         and uses callbacks to signal when a user is performing these actions.
-         */
-        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+        /*new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
                 Log.d("RemFrag", "Moved " );
@@ -115,33 +119,15 @@ public class PlacesFragment extends Fragment implements
                 Log.d("RemFrag", "Swipped " + swipeDir);
 
             }
+        }).attachToRecyclerView(mRecyclerView);*/
 
-
-           /* @Override
-            public int getMovementFlags(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-                if (viewHolder.getItemViewType() == ITEM_TYPE_ACTION_WIDTH_NO_SPRING) return 0;
-                return makeMovementFlags(ItemTouchHelper.UP|ItemTouchHelper.DOWN,
-                        ItemTouchHelper.START|ItemTouchHelper.END);
-            }*/
-
-          /*  @Override
-            public int getSwipeDirs(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder) {
-                if (viewHolder instanceof ReminderAdapter.ViewHolder){
-                    Log.d("RemFrag", "aaaaa" );
-                    return 0;
-                }
-                Log.d("RemFrag", "bbbb" );
-                return super.getSwipeDirs(recyclerView, viewHolder);
-            }
-            */
-        }).attachToRecyclerView(mRecyclerView);
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        makeMovieSearchQuery();
+        loadPlacesFromDB();
 
         // ------- Checks if the entrance was from the main Activity or from the AddReminderActivity
         if(getArguments()!=null){
@@ -218,10 +204,10 @@ public class PlacesFragment extends Fragment implements
             }
 
             //Extract the place information from the API
-            String placeName = place.getName().toString();
-            String placeAddress = place.getAddress().toString();
+            //String placeName = place.getName().toString();
+            //String placeAddress = place.getAddress().toString();
             placeID = place.getId();
-            Log.d("placeID", "placeName: " + placeName + " Adress: " + placeAddress);
+            //Log.d("placeID", "placeName: " + placeName + " Adress: " + placeAddress);
 
             showDialogPlaceName();
         }
@@ -273,12 +259,127 @@ public class PlacesFragment extends Fragment implements
 
     // ********************************************************************************************* Click on Places List
     @Override
-    public void onClick(int position) {
+    public void onClick(int position, boolean longClick) {
         // click from listener
-        if (ifEnterFromAddReminder) { // ------------------------------------------when Add Reminder
-            String placeName = mPlacesList.get(position).getPlaceName();
-            int placeIDinDB = mPlacesList.get(position).getPlaceIDinDB();
-          closeFragment(placeName, placeIDinDB);
+
+        if(longClick){ // -------------------------------------------------------------- onLongClick
+            deletePlaceDialog(position);
+        }else{// --------------------------------------------------------------------------- onClick
+
+            if (ifEnterFromAddReminder) { // --------------------------------------when Add Reminder
+                String placeName = mPlacesList.get(position).getPlaceName();
+                int placeIDinDB = mPlacesList.get(position).getPlaceIDinDB();
+                closeFragment(placeName, placeIDinDB);
+            }
+        }
+    }
+
+    // --------------------------------------------------------------------------------------------- Dialog Delete Place
+    private void deletePlaceDialog(final int position){
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle(getString(R.string.removing_place));
+        builder.setMessage(getString(R.string.removing_place_message));
+
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+
+                // Checking if the place is used in reminders
+                StringBuilder remindersNames = new StringBuilder();
+                ArrayList<Integer> remindersID = new ArrayList<>();
+                Cursor reminderCursor = RemindersFragment.mRemindersData;
+
+                for(int i=0; i<reminderCursor.getCount(); i++) {
+                    RemindersFragment.mRemindersData.moveToPosition(i);
+
+                    final int reminderPlaceIDcolumn = reminderCursor.getColumnIndex
+                            (RemindersContract.RemindersEntry.COLUMN_PLACES_DB_ID);
+                    int id =  reminderCursor.getInt(reminderPlaceIDcolumn);
+
+                    if (id == position) {
+                        int reminderNameColumn = reminderCursor.getColumnIndex
+                                (RemindersContract.RemindersEntry.COLUMN_NAME);
+                        String reminderName = reminderCursor.getString(reminderNameColumn);
+
+                        remindersNames.append(reminderName);
+                        if (i<reminderCursor.getCount() -1) {
+                            remindersNames.append(", ");
+                        }
+
+                        final int IDcolumn = reminderCursor.getColumnIndex
+                                (RemindersContract.RemindersEntry._ID);
+                        int reminderID = reminderCursor.getInt(IDcolumn);
+                            remindersID.add(reminderID);
+                    }
+                }
+
+                if (remindersID.size() > 0){
+                    placeIsUsedInRemindersDialog(position, remindersNames.toString(), remindersID);
+                }else{
+                    deletePlace(position);
+                }
+
+            }
+        });
+
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+               dialog.dismiss();
+            }
+        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+
+    // --------------------------------------------------------------------------------------------- Dialog if the place is used in reminders
+    private void  placeIsUsedInRemindersDialog(final int position, String places, final ArrayList<Integer> remindersID){
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle(getString(R.string.removing_place));
+
+        String removingMessage = getString(R.string.removing_place_in_reminders) + "\n"  + "\n"
+                + places + "\n" + "\n"
+                + getString(R.string.removing_place_in_reminders_end);
+        builder.setMessage(removingMessage);
+
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                deletePlace(position);
+                deleteRemindersWithRemovablePlaces(remindersID);
+            }
+        });
+
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        AlertDialog alert = builder.create();
+        alert.show();
+    }
+
+    private void deletePlace(int position){
+        // Delete Row
+        String stringId = Integer.toString(position);
+        Uri uri = PlacesContract.PlacesEntry.CONTENT_URI;
+        uri = uri.buildUpon().appendPath(stringId).build();
+
+        getActivity().getContentResolver().delete(uri, null, null);
+        loadPlacesFromDB();
+
+    }
+
+    private void deleteRemindersWithRemovablePlaces(ArrayList<Integer> remindersID){
+        for(int i=0; i<remindersID.size(); i++) {
+            int currID = remindersID.get(i);
+            String stringId = Integer.toString(currID);
+            Uri uri = RemindersContract.RemindersEntry.CONTENT_URI;
+            uri = uri.buildUpon().appendPath(stringId).build();
+
+            getActivity().getContentResolver().delete(uri, null, null);
+            Log.d("DelTest", "IDs: " + stringId);
         }
     }
 
@@ -289,10 +390,9 @@ public class PlacesFragment extends Fragment implements
 
     // *********************************************************************************************
     // ********************************************************************************************* Start Load
-    private void makeMovieSearchQuery() {
+    private void loadPlacesFromDB() {
         LoaderManager loaderManager = getActivity().getSupportLoaderManager();
         Object movieSearchLoader = loaderManager.getLoader(PLACES_ID_LOADER);
-
         if (movieSearchLoader == null){
             //loaderManager.initLoader(REMINDERS_ID_LOADER, queryBundle, this);
             loaderManager.initLoader(PLACES_ID_LOADER, null, this);
@@ -319,16 +419,16 @@ public class PlacesFragment extends Fragment implements
         mPlacesList = AppContentProvider.placesListFromCursor(mPlacesData);
         adapter.setRemindersData(mPlacesList);
 
-
         // if Place List is Empty - Enter to Add Place Dialog
         if(ifEnterFromAddReminder && (mPlacesList.size() == 0) && (placeID == null)){
             addPlace();
             placeWasAdded = true;
         }
+
     }
 
     @Override
     public void onLoaderReset(Loader loader) {
-        //TODO MAKE LOAD RESET
+        adapter.refresh();
     }
 }
