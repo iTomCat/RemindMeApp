@@ -77,6 +77,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         //Context context = holder.itemView.getContext();
         holder.remNameTxt.setText(descr);
 
+
         int id = mRemindersData.get(position).getRemIDinDB();
         holder.itemView.setTag(id);
 

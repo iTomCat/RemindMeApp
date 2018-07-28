@@ -39,6 +39,7 @@
             android:exported="false">
         </provider>
 
+        <receiver android:name="places.GeofenceBroadcastReceiver" />
 
     </application>
 

@@ -86,7 +86,12 @@ public class AppContentProvider extends ContentProvider{
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
                         @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 
+
         int match = sUriMatcher.match(uri);
+        Log.d("TestQ", "id " +  match);
+
+
+
         Cursor retCursor;
         switch (match) {
             case REMINDERS:
@@ -95,6 +100,21 @@ public class AppContentProvider extends ContentProvider{
                         projection,
                         selection,
                         selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+
+            case REMINDER_WITH_ID:
+                final SQLiteDatabase dbRem2 = remindersDb.getReadableDatabase();
+                String id = uri.getPathSegments().get(1);
+                String mSelection = selection + "=?";
+
+                String[] mSelectionArgs = new String[] {id};
+                retCursor = dbRem2.query(RemindersContract.RemindersEntry.TABLE_NAME,
+                        projection,
+                        mSelection,
+                        mSelectionArgs,
                         null,
                         null,
                         sortOrder);
@@ -263,6 +283,9 @@ public class AppContentProvider extends ContentProvider{
             case ACTIONS_WITH_ID:
                 final SQLiteDatabase dbAction = actionsDb.getWritableDatabase();
                 String idAction = uri.getPathSegments().get(1);
+
+                Log.d("SMSTAg", "idAction " + idAction);
+
 
                 tasksUpdated = dbAction.update(ActionsContract.ActionsEntry.TABLE_NAME,
                         contentValues,

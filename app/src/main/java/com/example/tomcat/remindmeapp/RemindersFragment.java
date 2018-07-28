@@ -71,6 +71,30 @@ public class RemindersFragment extends Fragment implements
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setAdapter(adapter);
 
+
+
+        //TEMP !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // Get Name BY ID by  REMINDER_WITH_ID:
+       /* String stringId = Integer.toString(5);
+        Uri uri = RemindersContract.RemindersEntry.CONTENT_URI;
+        uri = uri.buildUpon().appendPath(stringId).build();
+
+        Cursor cursor = getActivity().getContentResolver().query(uri,
+                null,
+                RemindersContract.RemindersEntry._ID,
+                null,
+                null);
+
+        assert cursor != null;
+        int IDinDB = cursor.getColumnIndex(RemindersContract.RemindersEntry.COLUMN_NAME);
+        cursor.moveToFirst(); // MOVE TO FIRST
+        String name = cursor.getString(IDinDB);
+
+        Log.d("TestQ", "reminder3 " +  name);
+*/
+
+
+
        /* new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
@@ -252,9 +276,6 @@ public class RemindersFragment extends Fragment implements
 
     @Override
     public void onLoaderReset(Loader loader) {
-
-        //TODO MAKE LOAD RESET  -- w popular movie jest pusty
-        Log.d("RemFrag", "RESET " );
         adapter.refresh();
     }
 }

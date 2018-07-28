@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
@@ -18,7 +19,6 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,13 +34,17 @@ import com.example.tomcat.remindmeapp.data.AppContentProvider;
 import com.example.tomcat.remindmeapp.data.PlacesContract;
 import com.example.tomcat.remindmeapp.data.RemindersContract;
 import com.example.tomcat.remindmeapp.models.Places;
-import com.example.tomcat.remindmeapp.models.Reminder;
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.PendingResult;
+import com.google.android.gms.common.api.ResultCallback;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.ui.PlacePicker;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
@@ -56,9 +60,15 @@ import static android.app.Activity.RESULT_OK;
 public class PlacesFragment extends Fragment implements
         MainActivity.FabButtonListenerFromActivity,
         PlacesAdapter.PlacesAdapterOnClickHandler,
-        LoaderManager.LoaderCallbacks{
+        LoaderManager.LoaderCallbacks,
+        GoogleApiClient.ConnectionCallbacks,
+        GoogleApiClient.OnConnectionFailedListener {
 
     public PlacesAdapter.PlacesAdapterOnClickHandler mClickHandler = this;
+
+    private GoogleApiClient mClient;
+    private Geofencing mGeofencing;
+
 
     public static final String TAG = MainActivity.class.getSimpleName();
     private static final int PERMISSIONS_REQUEST_FINE_LOCATION = 111;
@@ -67,7 +77,7 @@ public class PlacesFragment extends Fragment implements
     public static final String PALCE_NAME_DATA = "place_name";
 
     private PlacesAdapter adapter;
-    private final static int PLACES_ID_LOADER = 28;
+    private final static int PLACES_ID_LOADER = 33;
     private List<Places> mPlacesList = null;
     String placeID = null;
 
@@ -80,6 +90,15 @@ public class PlacesFragment extends Fragment implements
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        mClient = new GoogleApiClient.Builder(getActivity())
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API)
+                .addApi(com.google.android.gms.location.places.Places.GEO_DATA_API)
+                .enableAutoManage(getActivity(), this)
+                .build();
+        mGeofencing = new Geofencing(getActivity(), mClient);
     }
 
     @Nullable
@@ -121,6 +140,9 @@ public class PlacesFragment extends Fragment implements
             }
         }).attachToRecyclerView(mRecyclerView);*/
 
+
+
+
         return view;
     }
 
@@ -146,7 +168,7 @@ public class PlacesFragment extends Fragment implements
 
     @Override
     public void fabButtonFromActivity() {
-        addPlace();
+                addPlace();
     }
     private void fabButtonFromFragment(){
         fabPlus.setVisibility(View.VISIBLE);
@@ -155,6 +177,31 @@ public class PlacesFragment extends Fragment implements
             public void onClick(View v) {
                 if (ifEnterFromAddReminder) placeWasAdded = true;
                 addPlace();
+            }
+        });
+    }
+
+    public void refreshGeoPlacesData(List<Places> placesList) {
+        Log.d("GeofTest", "REFRESH");
+
+        List<String> guids = new ArrayList<>();
+        for (Places placeModel : placesList) {
+            String placeID = placeModel.getPlaceGoogleID();
+            guids.add(placeID);
+        }
+
+      /*PendingResult<PlaceBuffer> placeResult = com.google.android.gms.location.places.Places.GeoDataApi.getPlaceById(mClient,
+                guids.toArray(new String[guids.size()]));*/
+
+        PendingResult<PlaceBuffer> placeResult = com.google.android.gms.location.places.Places.GeoDataApi.getPlaceById(mClient,
+                guids.toArray(new String[guids.size()]));
+        placeResult.setResultCallback(new ResultCallback<PlaceBuffer>() {
+            @Override
+            public void onResult(@NonNull PlaceBuffer places) {
+                //mAdapter.swapPlaces(places);
+                mGeofencing.updateGeofencesList(places);
+                //if (mIsEnabled) mGeofencing.registerAllGeofences();
+                mGeofencing.registerAllGeofences();
             }
         });
     }
@@ -238,8 +285,8 @@ public class PlacesFragment extends Fragment implements
 
         assert uri != null;
         int placeIDinDB = (Long.valueOf(uri.getLastPathSegment())).intValue(); // Get action sms ID
-
         if(ifEnterFromAddReminder && placeWasAdded)closeFragment(placeName, placeIDinDB);
+
     }
 
     // --------------------------------------------------------------------------------------------- Show Dialog Place Name
@@ -379,7 +426,6 @@ public class PlacesFragment extends Fragment implements
             uri = uri.buildUpon().appendPath(stringId).build();
 
             getActivity().getContentResolver().delete(uri, null, null);
-            Log.d("DelTest", "IDs: " + stringId);
         }
     }
 
@@ -393,8 +439,8 @@ public class PlacesFragment extends Fragment implements
     private void loadPlacesFromDB() {
         LoaderManager loaderManager = getActivity().getSupportLoaderManager();
         Object movieSearchLoader = loaderManager.getLoader(PLACES_ID_LOADER);
+
         if (movieSearchLoader == null){
-            //loaderManager.initLoader(REMINDERS_ID_LOADER, queryBundle, this);
             loaderManager.initLoader(PLACES_ID_LOADER, null, this);
         }else {
             loaderManager.restartLoader(PLACES_ID_LOADER, null, this);
@@ -412,23 +458,38 @@ public class PlacesFragment extends Fragment implements
                 null);
     }
 
-    //@SuppressWarnings("unchecked")
     @Override
     public void onLoadFinished(Loader loader, Object loadedData) {
         Cursor mPlacesData = (Cursor) loadedData;
         mPlacesList = AppContentProvider.placesListFromCursor(mPlacesData);
         adapter.setRemindersData(mPlacesList);
 
+        if (mPlacesList.size() > 0) refreshGeoPlacesData(mPlacesList);
+
         // if Place List is Empty - Enter to Add Place Dialog
         if(ifEnterFromAddReminder && (mPlacesList.size() == 0) && (placeID == null)){
             addPlace();
             placeWasAdded = true;
         }
+    }
+    @Override
+    public void onLoaderReset(Loader loader) {
+        adapter.refresh();
+    }
+
+    // ********************************************************************************************* Google Play Services
+    @Override // ----------------------- Called when the Google API Client is successfully connected
+    public void onConnected(@Nullable Bundle bundle) {
+        if (mPlacesList.size() > 0) refreshGeoPlacesData(mPlacesList);
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
 
     }
 
     @Override
-    public void onLoaderReset(Loader loader) {
-        adapter.refresh();
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
     }
 }

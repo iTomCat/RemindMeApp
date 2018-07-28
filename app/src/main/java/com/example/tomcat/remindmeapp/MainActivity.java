@@ -26,10 +26,12 @@ import android.view.animation.OvershootInterpolator;
 import android.view.animation.ScaleAnimation;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.example.tomcat.remindmeapp.data.AppContentProvider;
 import com.example.tomcat.remindmeapp.data.RemindersContract;
 import com.example.tomcat.remindmeapp.models.Reminder;
+import com.example.tomcat.remindmeapp.places.Geofencing;
 import com.example.tomcat.remindmeapp.places.PlacesFragment;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,9 +50,7 @@ import butterknife.ButterKnife;
 
 
 public class MainActivity extends AppCompatActivity implements
-        AppBarLayout.OnOffsetChangedListener,
-        ConnectionCallbacks,
-        OnConnectionFailedListener{
+        AppBarLayout.OnOffsetChangedListener{
 
     public FabButtonListenerFromActivity activityListener;
 
@@ -58,13 +58,17 @@ public class MainActivity extends AppCompatActivity implements
     public static Typeface robotoFont;
 
     private int currentPage = 0;
-    private GoogleApiClient mClient;
+    /*private GoogleApiClient mClient;
+    private Geofencing mGeofencing;*/
+
+
 
 
     @BindView(R.id.rem_logo) ImageView reminderLogo;
     @BindView(R.id.app_bar_layout) AppBarLayout appBarLayout;
     @BindView(R.id.viewpager) CustomViewPager viewPager;
     @BindView(R.id.tabs) TabLayout tabLayout;
+    @BindView(R.id.google_privacy) LinearLayout privacy;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,18 +102,21 @@ public class MainActivity extends AppCompatActivity implements
         viewPageListener(viewPager);
 
 
-        mClient = new GoogleApiClient.Builder(this)
+       /* mClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
                 .addApi(Places.GEO_DATA_API)
                 .enableAutoManage(this, this)
                 .build();
+        mGeofencing = new Geofencing(this, mClient);*/
     }
 
-    // ********************************************************************************************* Google Play Services
+    /*// ********************************************************************************************* Google Play Services
+    //Called when the Google API Client is successfully connected
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+
         Log.d("ConnectServ", "CONNECT");
     }
 
@@ -122,6 +129,9 @@ public class MainActivity extends AppCompatActivity implements
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
+*/
+
+
 
     // ********************************************************************************************* Fab Button
     public void setActivityListener(FabButtonListenerFromActivity activityListener) {
@@ -215,6 +225,11 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onPageSelected(int position) {
                 currentPage = position;
+                if (position == 1) {
+                    privacy.setVisibility(View.VISIBLE);
+                }else {
+                    privacy.setVisibility(View.GONE);
+                }
             }
 
             @Override

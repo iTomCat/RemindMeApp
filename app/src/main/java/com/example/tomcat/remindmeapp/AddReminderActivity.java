@@ -148,6 +148,10 @@ public class AddReminderActivity extends AppCompatActivity {
                     Actions action = getIntent().getParcelableExtra(SELECTED_ACTION);
                     actionID = action.getActionIDinDB();
                     smsContact = action.getSmsContact();
+                    smsNumber = action.getSmsNumber();
+                    smsMessage = action.getSmsMessage();
+
+                    Log.d("SMSTAg", "smsContact ININININI " + smsContact);
                 }
                 notesTxt.setText(selecterReminder.getNotes());  // --------------------------- NOTES
 
@@ -237,21 +241,36 @@ public class AddReminderActivity extends AppCompatActivity {
 
         // ----------------------------------------------------------------------------------------- Action SMS
         smsID = -1;
+
+        Log.d("SMSTAg", "CURRENT_ACTION " + CURRENT_ACTION);
+
         if(CURRENT_ACTION == ACTION_SEND_SMS) {
             contentValues.put(ActionsContract.ActionsEntry.COLUMN_SMS_CONTACT, smsContact);
             contentValues.put(ActionsContract.ActionsEntry.COLUMN_SMS_NUMBER, smsNumber);
             contentValues.put(ActionsContract.ActionsEntry.COLUMN_SMS_MESSAGE, smsMessage);
 
+            Log.d("SMSTAg", "smsContact " + smsContact);
+
             if (editOrNewRem == NEW_REMINDER || editOrNewRem == EDIT_REMINDER) {
+
                 Uri uri = getContentResolver().insert(ActionsContract.ActionsEntry.CONTENT_URI, contentValues);
                 assert uri != null;
                 smsID = (Long.valueOf(uri.getLastPathSegment())).intValue(); // Get action sms ID
+                Log.d("SMSTAg", "smsID " + smsID);
             }
+
+            /*if (editOrNewRem == NEW_REMINDER) {
+                Log.d("SMSTAg", "smsID " + smsID);
+                Uri uri = getContentResolver().insert(ActionsContract.ActionsEntry.CONTENT_URI, contentValues);
+                assert uri != null;
+                smsID = (Long.valueOf(uri.getLastPathSegment())).intValue(); // Get action sms ID
+            }*/
 
             if (editOrNewRem == EDIT_REMINDER && actionID > 0) {
                 String stringId = Integer.toString(actionID);
                 Uri uriEdit = ActionsContract.ActionsEntry.CONTENT_URI;
                 uriEdit = uriEdit.buildUpon().appendPath(stringId).build();
+                Log.d("SMSTAg", "Edit Reminder " + stringId);
 
                 getContentResolver().update(uriEdit, contentValues, null, null);
             }
