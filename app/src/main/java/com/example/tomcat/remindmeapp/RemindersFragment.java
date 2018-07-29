@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.constraint.Group;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -17,16 +18,22 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.example.tomcat.remindmeapp.data.ActionsContract;
 import com.example.tomcat.remindmeapp.data.AppContentProvider;
 import com.example.tomcat.remindmeapp.data.PlacesContract;
 import com.example.tomcat.remindmeapp.data.RemindersContract;
 import com.example.tomcat.remindmeapp.models.Actions;
-import com.example.tomcat.remindmeapp.models.Places;
 import com.example.tomcat.remindmeapp.models.Reminder;
 
 import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
 
 /**
  * Fragment with Active RemindersFragment - Reminder List
@@ -37,16 +44,20 @@ public class RemindersFragment extends Fragment implements
         LoaderManager.LoaderCallbacks{
 
     public ReminderAdapter.ReminderAdapterOnClickHandler mClickHandler = this;
+    private boolean init = true;
 
     private final static int REMINDERS_ID_LOADER = 24;
-    private final static int PLACES_ID_LOADER = 26;
     private final static int ACTIONS_ID_LOADER = 28;
 
     private List<Reminder> mReminderList = null;
-    List<Places> mPlacesList = null;
     List<Actions> mActionsList = null;
     private ReminderAdapter adapter;
     public static Cursor mRemindersData;
+    private RecyclerView mRecyclerView;
+
+    private Unbinder unbinder;
+    TextView introTxt;
+    ImageView imageIntro;
 
     public RemindersFragment(){
     }
@@ -56,21 +67,29 @@ public class RemindersFragment extends Fragment implements
         super.onCreate(savedInstanceState);
     }
 
+    @Override public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.reminders_fragment, container, false);
+        unbinder = ButterKnife.bind(this, view);
+
+        introTxt = getActivity().findViewById(R.id.remind_info);
+        imageIntro = getActivity().findViewById(R.id.lines);
 
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager
                 (getActivity(), LinearLayoutManager.VERTICAL, false);
 
-        adapter = new ReminderAdapter(mClickHandler);
+        adapter = new ReminderAdapter(getActivity(), mClickHandler);
 
-        RecyclerView mRecyclerView = view.findViewById(R.id.recycler_view_reminders);
+        mRecyclerView = view.findViewById(R.id.recycler_view_reminders);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(layoutManager);
-        mRecyclerView.setAdapter(adapter);
-
+        //mRecyclerView.setAdapter(adapter);
 
 
         //TEMP !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -92,6 +111,26 @@ public class RemindersFragment extends Fragment implements
 
         Log.d("TestQ", "reminder3 " +  name);
 */
+
+        /*//String stringId = Integer.toString(5);
+        String stringId = "ChIJY2m4QCfMFkcRppUtdIZptFo";
+        Uri uri = PlacesContract.PlacesEntry.CONTENT_URI;
+        uri = uri.buildUpon().appendPath(stringId).build();
+
+        Cursor cursor = getActivity().getContentResolver().query(uri,
+                null,
+                PlacesContract.PlacesEntry.COLUMN_PLACE_GOOGLE_ID,
+                null,
+                null);
+
+        assert cursor != null;
+        Log.d("TestQ", "cursor.getCount() " +  cursor.getCount());
+        int IDinDB = cursor.getColumnIndex(PlacesContract.PlacesEntry.COLUMN_PLACE_NAME);
+        cursor.moveToFirst(); // MOVE TO FIRST
+        String name = cursor.getString(IDinDB);
+        cursor.close();
+
+        Log.d("TestQ", "reminder3 " +  name);*/
 
 
 
@@ -134,21 +173,25 @@ public class RemindersFragment extends Fragment implements
             Bundle mBundle = new Bundle();
 
             mBundle.putInt(AddReminderActivity.NEW_OR_EDIT, AddReminderActivity.EDIT_REMINDER);
+            String currPlaceID = selectedReminder.getPlaceID();
 
-            // -------------------------------------------------------------------------- Place Name
-            int currPlaceID = selectedReminder.getPlaceID();
-            int posOnListByID = -1;
-            //
-            for(int i=0; i<mPlacesList.size(); i++){
-                int currIDinDB = mPlacesList.get(i).getPlaceIDinDB();
-                if (currIDinDB == currPlaceID){
-                    posOnListByID = i;
-                    break;
-                }
-            }
+            Uri uri = PlacesContract.PlacesEntry.CONTENT_URI;
+            uri = uri.buildUpon().appendPath(currPlaceID).build();
 
-            Places selectedPlace =  mPlacesList.get(posOnListByID);
-            intent.putExtra(AddReminderActivity.SELECTED_PLACE, selectedPlace);
+            Cursor cursor = getActivity().getContentResolver().query(uri,
+                    null,
+                    PlacesContract.PlacesEntry.COLUMN_PLACE_GOOGLE_ID,
+                    null,
+                    null);
+
+            assert cursor != null;
+            int IDinDB = cursor.getColumnIndex(PlacesContract.PlacesEntry.COLUMN_PLACE_NAME);
+            cursor.moveToFirst(); // MOVE TO FIRST
+            String placeName = cursor.getString(IDinDB);
+            cursor.close();
+
+
+            intent.putExtra(AddReminderActivity.SELECTED_PLACE, placeName);
 
             // ------------------------------------------------------------------------- Actions SMS
             if (selectedReminder.getAction() == AddReminderActivity.ACTION_SEND_SMS){
@@ -232,14 +275,6 @@ public class RemindersFragment extends Fragment implements
                         null,
                         null);
 
-            case PLACES_ID_LOADER: // -------------------------------------------------- Load PLACES
-                return new CursorLoader(getActivity(),
-                        PlacesContract.PlacesEntry.CONTENT_URI,
-                        null,
-                        null,
-                        null,
-                        null);
-
             case ACTIONS_ID_LOADER: // ------------------------------------------------ Load Actions
                 return new CursorLoader(getActivity(),
                         ActionsContract.ActionsEntry.CONTENT_URI,
@@ -261,12 +296,15 @@ public class RemindersFragment extends Fragment implements
             case ACTIONS_ID_LOADER:
                 Cursor mActionsData = (Cursor) loadedData;
                 mActionsList = AppContentProvider.actionsListFromCursor(mActionsData);
-                loadFromDB(PLACES_ID_LOADER); // Start Load Places form DB
-                break;
-            case PLACES_ID_LOADER:
-                Cursor mPlacesData = (Cursor) loadedData;
-                mPlacesList = AppContentProvider.placesListFromCursor(mPlacesData);
-                adapter.setRemindersData(mReminderList, mPlacesList);
+                adapter.swapCursor(mRemindersData);
+                mRecyclerView.setAdapter(adapter);
+
+                // Intro Txt
+                int visibility = (RemindersFragment.mRemindersData.getCount() > 0) ? View.GONE : View.VISIBLE;
+                introTxt.setVisibility(visibility);
+                imageIntro.setVisibility(visibility);
+                init = false;
+
                 break;
             default:
                 break;
@@ -276,6 +314,6 @@ public class RemindersFragment extends Fragment implements
 
     @Override
     public void onLoaderReset(Loader loader) {
-        adapter.refresh();
+        adapter.swapCursor(null);
     }
 }

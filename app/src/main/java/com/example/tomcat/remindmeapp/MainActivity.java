@@ -8,6 +8,7 @@ import android.graphics.Typeface;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.Group;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -27,6 +28,7 @@ import android.view.animation.ScaleAnimation;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.example.tomcat.remindmeapp.data.AppContentProvider;
 import com.example.tomcat.remindmeapp.data.RemindersContract;
@@ -62,13 +64,12 @@ public class MainActivity extends AppCompatActivity implements
     private Geofencing mGeofencing;*/
 
 
-
-
     @BindView(R.id.rem_logo) ImageView reminderLogo;
     @BindView(R.id.app_bar_layout) AppBarLayout appBarLayout;
     @BindView(R.id.viewpager) CustomViewPager viewPager;
     @BindView(R.id.tabs) TabLayout tabLayout;
     @BindView(R.id.google_privacy) LinearLayout privacy;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements
 
         robotoLightFont = Typeface.createFromAsset(this.getAssets(), "fonts/Roboto-Light.ttf");
         robotoFont = Typeface.createFromAsset(this.getAssets(), "fonts/Roboto-Regular.ttf");
+
 
         //CollapsingToolbarLayout toolbarLayout = findViewById(R.id.collapsing_toolbar_layout);
         //toolbarLayout.setExpandedTitleColor(Color.BLUE);
@@ -100,6 +102,7 @@ public class MainActivity extends AppCompatActivity implements
 
 
         viewPageListener(viewPager);
+        //displayIntro(0);
 
 
        /* mClient = new GoogleApiClient.Builder(this)
@@ -215,6 +218,23 @@ public class MainActivity extends AppCompatActivity implements
         }
     }
 
+    private void displayIntro(int currentPage){
+        int visibility;
+        final TextView introTxt =  findViewById(R.id.remind_info);
+        final ImageView imageIntro = findViewById(R.id.lines);
+
+
+        if (currentPage == 1) { // Places
+            visibility = View.GONE;
+        }else { // Reminders
+            visibility = (RemindersFragment.mRemindersData.getCount() > 0) ? View.GONE : View.VISIBLE;
+        }
+
+        introTxt.setVisibility(visibility);
+        imageIntro.setVisibility(visibility);
+
+    }
+
     // --------------------------------------------------------------------------------------------- View Pager Listener
     private void viewPageListener(final ViewPager viewPager){
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -224,13 +244,17 @@ public class MainActivity extends AppCompatActivity implements
 
             @Override
             public void onPageSelected(int position) {
-                currentPage = position;
-                if (position == 1) {
+
+                //currentPage = position;
+                if (position == 1) { // Places
                     privacy.setVisibility(View.VISIBLE);
-                }else {
+                }else { // Reminders
                     privacy.setVisibility(View.GONE);
                 }
+
+                displayIntro(position);
             }
+
 
             @Override
             public void onPageScrollStateChanged(int state) {

@@ -11,7 +11,7 @@ public class Reminder implements Parcelable {
 
     private int reminderIDinDB;
     private int inOut;
-    private int placeId;
+    private String placeId;
     private String name;
     private int active;
     private int settings;
@@ -25,7 +25,7 @@ public class Reminder implements Parcelable {
     private Reminder(Parcel in) {
         reminderIDinDB = in.readInt();
         inOut = in.readInt();
-        placeId = in.readInt();
+        placeId = in.readString();
         name = in.readString();
         active = in.readInt();
         settings = in.readInt();
@@ -61,10 +61,10 @@ public class Reminder implements Parcelable {
         this.inOut = inOut;
     }
 
-    public int getPlaceID() {
+    public String getPlaceID() {
         return placeId;
     }
-    public void setPlaceID(int placeId) {
+    public void setPlaceID(String placeId) {
         this.placeId = placeId;
     }
 
@@ -119,7 +119,7 @@ public class Reminder implements Parcelable {
     public void writeToParcel(Parcel parcel, int i) {
         parcel.writeInt(reminderIDinDB);
         parcel.writeInt(inOut);
-        parcel.writeInt(placeId);
+        parcel.writeString(placeId);
         parcel.writeString(name);
         parcel.writeInt(active);
         parcel.writeInt(settings);

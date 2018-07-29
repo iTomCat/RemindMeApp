@@ -24,7 +24,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:src="@drawable/logo"
+                android:src="@drawable/logo1b"
                 app:layout_collapseMode="parallax"
                 android:contentDescription="@string/logo_image"
                />
@@ -34,7 +34,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="?actionBarSize"
                 android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-                app:collapseIcon="@drawable/logo"
+                app:collapseIcon="@drawable/logo1b"
                 app:contentInsetStart="72dp"
                 app:layout_collapseMode="pin" />
 
@@ -96,6 +96,33 @@
             android:textAlignment="center"
             android:textColorLink="@color/colorPrimary" />
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/remind_info"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="135dp"
+        android:layout_marginEnd="110dp"
+        android:text="@string/no_reminder"
+        android:textSize="18sp"
+        android:visibility="gone"/>
+
+
+    <ImageView
+        android:id="@+id/lines"
+        android:visibility="gone"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_gravity="bottom|end"
+        android:layout_marginBottom="42dp"
+        android:layout_marginEnd="100dp"
+        android:src="@drawable/lines"
+        tools:ignore="ContentDescription" />
 
     <ImageButton
         android:id="@+id/fab_main"

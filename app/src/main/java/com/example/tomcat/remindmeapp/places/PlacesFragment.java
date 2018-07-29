@@ -24,6 +24,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.tomcat.remindmeapp.AddReminderActivity;
@@ -75,6 +77,7 @@ public class PlacesFragment extends Fragment implements
     private static final int PLACE_PICKER_REQUEST = 1;
     public static final int PALCE_NAME_REQUEST = 2;
     public static final String PALCE_NAME_DATA = "place_name";
+    public static final String PLACE_EXIST = "place_exist";
 
     private PlacesAdapter adapter;
     private final static int PLACES_ID_LOADER = 33;
@@ -117,34 +120,9 @@ public class PlacesFragment extends Fragment implements
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setAdapter(adapter);
 
-
-        /*new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                Log.d("RemFrag", "Moved " );
-                return false;
-            }
-
-            @Override
-            public boolean isLongPressDragEnabled() {
-                Log.d("RemFrag", "Long Presed " );
-                return super.isLongPressDragEnabled();
-            }
-
-            // Called when a user swipes left or right on a ViewHolder
-            @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
-                // Here is where you'll implement swipe to delete
-                Log.d("RemFrag", "Swipped " + swipeDir);
-
-            }
-        }).attachToRecyclerView(mRecyclerView);*/
-
-
-
-
         return view;
     }
+
 
     @Override
     public void onResume() {
@@ -190,9 +168,6 @@ public class PlacesFragment extends Fragment implements
             guids.add(placeID);
         }
 
-      /*PendingResult<PlaceBuffer> placeResult = com.google.android.gms.location.places.Places.GeoDataApi.getPlaceById(mClient,
-                guids.toArray(new String[guids.size()]));*/
-
         PendingResult<PlaceBuffer> placeResult = com.google.android.gms.location.places.Places.GeoDataApi.getPlaceById(mClient,
                 guids.toArray(new String[guids.size()]));
         placeResult.setResultCallback(new ResultCallback<PlaceBuffer>() {
@@ -234,39 +209,38 @@ public class PlacesFragment extends Fragment implements
         }
     }
 
-    /***
-     * Called when the Place Picker Activity returns back with a selected place (or after canceling)
-     *
-     * @param requestCode The request code passed when calling startActivityForResult
-     * @param resultCode  The result code specified by the second activity
-     * @param data        The Intent that carries the result data.
-     */
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // ------------------------------------------------------------------------------ PICK PLACE
+        // ----------------------------------------------------------------------------------------- PICK PLACE
         if (requestCode == PLACE_PICKER_REQUEST && resultCode == RESULT_OK) {
+            String placeName;
+
             Place place = PlacePicker.getPlace(getActivity(), data);
             if (place == null) {
                 Log.i(TAG, "No place selected");
                 return;
             }
-
-            //Extract the place information from the API
-            //String placeName = place.getName().toString();
-            //String placeAddress = place.getAddress().toString();
             placeID = place.getId();
-            //Log.d("placeID", "placeName: " + placeName + " Adress: " + placeAddress);
 
-            showDialogPlaceName();
+            // --------------------------------------------- The place was already added to the list
+            if (AppContentProvider.checkGoogleIdInDB(getActivity(), placeID)){
+                placeName = AppContentProvider.getPlaceNameBasedGoogleID(getActivity(), placeID);
+
+            }else{ // ----------------------------------------------------------------- Place is New
+                placeName = null;
+            }
+
+            showDialogPlaceName(placeName);
         }
 
-        // ------------------------------------------------------------------------ ENTER PLACE NAME
+        // ----------------------------------------------------------------------------------------- ENTER PLACE NAME
         if (requestCode == PALCE_NAME_REQUEST ) {
             assert  data.getExtras() != null;
             String placeName = data.getExtras().getString(PALCE_NAME_DATA);
+            boolean placeExisted = data.getExtras().getBoolean(PLACE_EXIST);
 
             assert placeName != null;
             if(!placeName.equals(getString(R.string.cancel))){ // ------------------------------- OK
-                addPlaceToDB(placeName, placeID);
+                addPlaceToDB(placeName, placeID, placeExisted);
             }else{ // ----------------------------------------------------------------------- CANCEL
 
                 Toast.makeText(getActivity(),getString(R.string.add_place_cancel),
@@ -276,25 +250,34 @@ public class PlacesFragment extends Fragment implements
     }
 
     // --------------------------------------------------------------------------------------------- Writing Place to DB
-    private void addPlaceToDB(String placeName, String placeID){
+    private void addPlaceToDB(String placeName, String placeID, boolean plceExisted){
         ContentValues contentValues = new ContentValues();
         contentValues.put(PlacesContract.PlacesEntry.COLUMN_PLACE_GOOGLE_ID, placeID);
         contentValues.put(PlacesContract.PlacesEntry.COLUMN_PLACE_NAME, placeName);
-        Uri uri = getActivity().getContentResolver()
-                .insert(PlacesContract.PlacesEntry.CONTENT_URI, contentValues);
 
-        assert uri != null;
-        int placeIDinDB = (Long.valueOf(uri.getLastPathSegment())).intValue(); // Get action sms ID
-        if(ifEnterFromAddReminder && placeWasAdded)closeFragment(placeName, placeIDinDB);
+        if (!plceExisted) { // ----------------------------------------------------------- New Place
+            getActivity().getContentResolver()
+                    .insert(PlacesContract.PlacesEntry.CONTENT_URI, contentValues);
+        }else { // ---------------------------------------------------------------------- Edit Place
+            Uri uri = PlacesContract.PlacesEntry.CONTENT_URI;
+            uri = uri.buildUpon().appendPath(placeID).build();
+
+            getActivity().getContentResolver().update(uri, contentValues, null, null);
+        }
+
+        //assert uri != null;
+        //int placeIDinDB = (Long.valueOf(uri.getLastPathSegment())).intValue(); // Get action sms ID
+
+        if(ifEnterFromAddReminder && placeWasAdded)closeFragment(placeName, placeID);
 
     }
 
     // --------------------------------------------------------------------------------------------- Show Dialog Place Name
-    private void showDialogPlaceName() {
+    private void showDialogPlaceName(String placeName) {
         DialogFragment dialogPlaceName = new DialogPlaceName();
-        //Bundle args = new Bundle();
-        //args.putInt(REMINDER_SETTINGS, CURRENT_SETTINGS);
-        //dialogPlaceName.setArguments(args);
+        Bundle args = new Bundle();
+        args.putString(PALCE_NAME_DATA, placeName);
+        dialogPlaceName.setArguments(args);
         dialogPlaceName.setTargetFragment(this, PALCE_NAME_REQUEST);
         dialogPlaceName.show(getActivity().getSupportFragmentManager(), "dialog_place_name");
     }
@@ -315,7 +298,7 @@ public class PlacesFragment extends Fragment implements
 
             if (ifEnterFromAddReminder) { // --------------------------------------when Add Reminder
                 String placeName = mPlacesList.get(position).getPlaceName();
-                int placeIDinDB = mPlacesList.get(position).getPlaceIDinDB();
+                String placeIDinDB = mPlacesList.get(position).getPlaceGoogleID();
                 closeFragment(placeName, placeIDinDB);
             }
         }
@@ -339,10 +322,15 @@ public class PlacesFragment extends Fragment implements
                     RemindersFragment.mRemindersData.moveToPosition(i);
 
                     final int reminderPlaceIDcolumn = reminderCursor.getColumnIndex
-                            (RemindersContract.RemindersEntry.COLUMN_PLACES_DB_ID);
-                    int id =  reminderCursor.getInt(reminderPlaceIDcolumn);
+                            (RemindersContract.RemindersEntry.COLUMN_PLACES_GOOGLE_ID);
+                    String id =  reminderCursor.getString(reminderPlaceIDcolumn);
 
-                    if (id == position) {
+                    String requiredGoogleID =
+                            AppContentProvider.getGoogleIDbyID(getActivity(), position);
+
+
+
+                     if (id.equals(requiredGoogleID)) {
                         int reminderNameColumn = reminderCursor.getColumnIndex
                                 (RemindersContract.RemindersEntry.COLUMN_NAME);
                         String reminderName = reminderCursor.getString(reminderNameColumn);
@@ -429,7 +417,7 @@ public class PlacesFragment extends Fragment implements
         }
     }
 
-    private void closeFragment(String placeName, int placeIDinDB){
+    private void closeFragment(String placeName, String placeIDinDB){
         ((AddReminderActivity) getActivity()).onEnterFromSelectPlace(placeIDinDB, placeName);
         getActivity().getSupportFragmentManager().beginTransaction().remove(this).commit();
     }

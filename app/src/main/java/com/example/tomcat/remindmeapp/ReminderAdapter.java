@@ -1,15 +1,15 @@
 package com.example.tomcat.remindmeapp;
 
+import android.app.Activity;
+import android.database.Cursor;
+
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.tomcat.remindmeapp.models.Places;
-import com.example.tomcat.remindmeapp.models.Reminder;
-
-import java.util.List;
+import com.example.tomcat.remindmeapp.data.AppContentProvider;
+import com.example.tomcat.remindmeapp.data.RemindersContract;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -19,11 +19,12 @@ import butterknife.ButterKnife;
  */
 
 public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHolder> {
-    private List<Reminder> mRemindersData;
-    private List<Places> mPlacesData;
     private final ReminderAdapterOnClickHandler mClickHandler;
+    private Activity activity;
+    private Cursor mCursor;
 
-    ReminderAdapter(ReminderAdapterOnClickHandler clickHandler) {
+    ReminderAdapter(Activity activity, ReminderAdapterOnClickHandler clickHandler) {
+        this.activity = activity;
         this.mClickHandler = clickHandler;
     }
 
@@ -73,34 +74,25 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(ReminderAdapter.ViewHolder holder, int position) {
-        String descr = mRemindersData.get(position).getName();
-        //Context context = holder.itemView.getContext();
+
+        int nameIndex = mCursor.getColumnIndex(RemindersContract.RemindersEntry.COLUMN_NAME);
+        int idIndex = mCursor.getColumnIndex(RemindersContract.RemindersEntry._ID);
+        int placeIdIndex = mCursor.getColumnIndex(RemindersContract.RemindersEntry.COLUMN_PLACES_GOOGLE_ID);
+
+        mCursor.moveToPosition(position); // get to the right location in the cursor
+
+
+        String descr = mCursor.getString(nameIndex);
         holder.remNameTxt.setText(descr);
 
 
-        int id = mRemindersData.get(position).getRemIDinDB();
+        int id = mCursor.getInt(idIndex);
         holder.itemView.setTag(id);
 
-        // ----------------------------------------------------------- Get data from DB Places by ID
-        int currPlaceID = mRemindersData.get(position).getPlaceID();
-        int posOnListByID = -1;
-        //
-        for(int i=0; i<mPlacesData.size(); i++){
-           int currIDinDB = mPlacesData.get(i).getPlaceIDinDB();
-            if (currIDinDB == currPlaceID){
-                posOnListByID = i;
-                break;
-           }
-        }
-
-        if (posOnListByID >= 0 ) {
-            String placeName = mPlacesData.get(posOnListByID).getPlaceName();
-            holder.placeNameTxt.setText(placeName);
-        }
-
-
-
-
+        // ----------------------------------------------------------- Get data from DB Places
+        String currPlaceID = mCursor.getString(placeIdIndex);
+        String placeName = AppContentProvider.getPlaceNameBasedGoogleID(activity, currPlaceID);
+        if (placeName != null) holder.placeNameTxt.setText(placeName);
 
 
         /*String imageUrl = reminders.get(position).getImage();
@@ -130,19 +122,27 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
     }
 
+
     @Override
     public int getItemCount() {
-        if (null == mRemindersData) return 0;
-        return mRemindersData.size();
+        if (mCursor == null) {
+            return 0;
+        }
+        return mCursor.getCount();
     }
 
-    void setRemindersData(List<Reminder> moviesData, List<Places> placesData) {
-        mRemindersData = moviesData;
-        mPlacesData = placesData;
-        notifyDataSetChanged();
+
+    void swapCursor(Cursor c) {
+        // check if this cursor is the same as the previous cursor (mCursor)
+        if (mCursor == c) {
+            return; // bc nothing has changed
+        }
+        this.mCursor = c; // new cursor value assigned
+
+        //check if this is a valid cursor, then update the cursor
+        if (c != null) {
+            this.notifyDataSetChanged();
+        }
     }
 
-    void refresh(){
-        this.notifyDataSetChanged();
-    }
 }

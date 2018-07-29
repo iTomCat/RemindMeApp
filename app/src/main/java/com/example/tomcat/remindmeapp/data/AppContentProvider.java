@@ -1,5 +1,6 @@
 package com.example.tomcat.remindmeapp.data;
 
+import android.app.Activity;
 import android.content.ContentProvider;
 import android.content.ContentUris;
 import android.content.ContentValues;
@@ -66,7 +67,7 @@ public class AppContentProvider extends ContentProvider{
         uriMatcher.addURI(AUTHORITY, PlacesContract.PATH_PLACES,
                 PLACES);
         // Single Item
-        uriMatcher.addURI(AUTHORITY, PlacesContract.PATH_PLACES + "/#",
+        uriMatcher.addURI(AUTHORITY, PlacesContract.PATH_PLACES + "/*",
                 PLACES_WITH_ID);
 
         // --------------------------------------------------------------------------------- Actions
@@ -126,6 +127,21 @@ public class AppContentProvider extends ContentProvider{
                         projection,
                         selection,
                         selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+
+            case PLACES_WITH_ID:
+                final SQLiteDatabase dbPlaces2 = placesDb.getReadableDatabase();
+                String idPalce = uri.getPathSegments().get(1);
+                String mSelectionPlace = selection + "=?";
+
+                String[] mSelectionArgsPlace = new String[] {idPalce};
+                retCursor = dbPlaces2.query(PlacesContract.PlacesEntry.TABLE_NAME,
+                        projection,
+                        mSelectionPlace,
+                        mSelectionArgsPlace,
                         null,
                         null,
                         sortOrder);
@@ -280,12 +296,21 @@ public class AppContentProvider extends ContentProvider{
 
                 break;
 
+            case PLACES_WITH_ID:
+                final SQLiteDatabase dbPlaces = placesDb.getWritableDatabase();
+                String googleID = uri.getPathSegments().get(1);
+
+                Log.d("AddPlace", "Place googleID " + googleID);
+
+                tasksUpdated = dbPlaces.update(PlacesContract.PlacesEntry.TABLE_NAME,
+                        contentValues,
+                        "place_id=?", new String[]{googleID});
+
+                break;
+
             case ACTIONS_WITH_ID:
                 final SQLiteDatabase dbAction = actionsDb.getWritableDatabase();
                 String idAction = uri.getPathSegments().get(1);
-
-                Log.d("SMSTAg", "idAction " + idAction);
-
 
                 tasksUpdated = dbAction.update(ActionsContract.ActionsEntry.TABLE_NAME,
                         contentValues,
@@ -308,6 +333,71 @@ public class AppContentProvider extends ContentProvider{
     }
 
 
+    // ********************************************************************************************* Get Name Place from db based on GOOGLE ID
+    public static String getPlaceNameBasedGoogleID (Activity activity, String currPlaceID){
+
+        Uri uri = PlacesContract.PlacesEntry.CONTENT_URI;
+        uri = uri.buildUpon().appendPath(currPlaceID).build();
+
+        Cursor cursor = activity.getContentResolver().query(uri,
+                null,
+                PlacesContract.PlacesEntry.COLUMN_PLACE_GOOGLE_ID,
+                null,
+                null);
+
+        assert cursor != null;
+        int ColumnInDB = cursor.getColumnIndex(PlacesContract.PlacesEntry.COLUMN_PLACE_NAME);
+        cursor.moveToFirst(); // MOVE TO FIRST
+        String placeName = cursor.getString(ColumnInDB);
+        cursor.close();
+
+        return placeName;
+    }
+
+    // ********************************************************************************************* Get GoogleID based on database _ID
+    public static String getGoogleIDbyID (Activity activity, int currID){
+
+        String id = String.valueOf(currID);
+
+        Uri uri = PlacesContract.PlacesEntry.CONTENT_URI;
+        uri = uri.buildUpon().appendPath(id).build();
+
+        Cursor cursor = activity.getContentResolver().query(uri,
+                null,
+                PlacesContract.PlacesEntry._ID,
+                null,
+                null);
+
+        assert cursor != null;
+        int ColumnInDB = cursor.getColumnIndex(PlacesContract.PlacesEntry.COLUMN_PLACE_GOOGLE_ID);
+        cursor.moveToFirst(); // MOVE TO FIRST
+        String googleID = cursor.getString(ColumnInDB);
+        cursor.close();
+
+        return googleID;
+    }
+
+    // ********************************************************************************************* Check if Google's place id is in DB
+    public static boolean checkGoogleIdInDB(Activity activity, String currPlaceID){
+        boolean dataExist;
+        Uri uri = PlacesContract.PlacesEntry.CONTENT_URI;
+        uri = uri.buildUpon().appendPath(currPlaceID).build();
+
+        Cursor cursor = activity.getContentResolver().query(uri,
+                null,
+                PlacesContract.PlacesEntry.COLUMN_PLACE_GOOGLE_ID,
+                null,
+                null);
+
+        assert cursor != null;
+        dataExist = cursor.getCount() > 0;
+
+        cursor.close();
+
+        return dataExist;
+    }
+
+
     // ********************************************************************************************* Making Lists from Cursor
     public static List<Reminder> remindersListFromCursor(Cursor cursor){
         List<Reminder> mRemindersList = new ArrayList<>();
@@ -321,8 +411,8 @@ public class AppContentProvider extends ContentProvider{
             int inOut = cursor.getColumnIndex(RemindersContract.RemindersEntry.COLUMN_IN_OR_OUT);
             reminder.setInOut(cursor.getInt(inOut));
 
-            int placeID = cursor.getColumnIndex(RemindersContract.RemindersEntry.COLUMN_PLACES_DB_ID);
-            reminder.setPlaceID(cursor.getInt(placeID));
+            int placeID = cursor.getColumnIndex(RemindersContract.RemindersEntry.COLUMN_PLACES_GOOGLE_ID);
+            reminder.setPlaceID(cursor.getString(placeID));
 
             int name = cursor.getColumnIndex(RemindersContract.RemindersEntry.COLUMN_NAME);
             reminder.setName(cursor.getString(name));

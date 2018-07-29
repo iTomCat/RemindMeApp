@@ -25,7 +25,7 @@ public class RemindersContract {
 
         //public static final String COLUMN_ID = "remind_id";
         public static final String COLUMN_IN_OR_OUT = "in_or_out";
-        public static final String COLUMN_PLACES_DB_ID = "places";
+        public static final String COLUMN_PLACES_GOOGLE_ID = "places";
         public static final String COLUMN_NAME = "name";
         public static final String COLUMNM_ACTIVE = "active";
         public static final String COLUMN_REMIND_SETTINGS = "settings";

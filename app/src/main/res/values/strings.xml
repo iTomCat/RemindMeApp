@@ -24,7 +24,7 @@
     <string name="add_new_reminder">Add a New Reminder</string>
     <string name="edit_reminder">Edit Reminder</string>
     <string name="add">Add</string>
-    <string name="ok">Ok</string>
+    <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="in">When you arrive</string>
     <string name="out">When you leave</string>
@@ -36,6 +36,7 @@
     <string name="removing_reminder">Removing the reminder</string>
     <string name="removing_reminder_message">Do you want to delete a reminder from the list</string>
     <string name="detail_error_message">Reminderata not available</string>
+    <string name="no_reminder">It looks like you do not have any reminder yet</string>
 
     <string name="reminder_set">Reminder settings</string>
     <string name="remind_once">Remind me only once</string>
@@ -80,6 +81,8 @@
     <string name="removing_place_message">Do you want to delete a place from the list</string>
     <string name="removing_place_in_reminders">The place you want to delete is used in the reminders: </string>
     <string name="removing_place_in_reminders_end">Deleting a place also removes these reminders</string>
+    <string name="already_exist">The place is already on the list</string>
+    <string name="already_exist_2">Do you want to change the name?</string>
 
 
 

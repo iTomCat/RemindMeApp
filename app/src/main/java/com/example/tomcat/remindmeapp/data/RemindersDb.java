@@ -24,7 +24,7 @@ public class RemindersDb extends SQLiteOpenHelper {
         final String SQL_CREATE_REMINDERS_TABLE = "CREATE TABLE " + RemindersEntry.TABLE_NAME + " (" +
                 RemindersEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 RemindersEntry.COLUMN_IN_OR_OUT + " INTEGER NOT NULL, " +
-                RemindersEntry.COLUMN_PLACES_DB_ID + " INTEGER NOT NULL, " +
+                RemindersEntry.COLUMN_PLACES_GOOGLE_ID + " TEXT NOT NULL, " +
                 RemindersEntry.COLUMN_NAME + " TEXT NOT NULL, " +
                 RemindersEntry.COLUMNM_ACTIVE + " INTEGER NOT NULL, " +
                 RemindersEntry.COLUMN_REMIND_SETTINGS + " INTEGER NOT NULL, " +

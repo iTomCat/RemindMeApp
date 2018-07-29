@@ -3,29 +3,26 @@ package com.example.tomcat.remindmeapp.places;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import com.example.tomcat.remindmeapp.AddReminderActivity;
 import com.example.tomcat.remindmeapp.R;
-import com.example.tomcat.remindmeapp.sms.DialogPrepareSms;
-import com.example.tomcat.remindmeapp.sms.DialogSelectContact;
-import com.example.tomcat.remindmeapp.utilitis.Tools;
 
 /**
  * Dialog - Enter Place Name
  */
 
 public class DialogPlaceName extends DialogFragment {
-    public static String placeName = null;
+    private boolean placeExisted;
+
 
     //public DialogInterface.OnDismissListener onDismissSmsListener;
 
@@ -44,6 +41,26 @@ public class DialogPlaceName extends DialogFragment {
         // ---------------------------------------------------------------------- Input Text Message
         inputTxtLay = view.findViewById(R.id.place_name_input);
         inputTxt = view.findViewById(R.id.text_input_place_name);
+
+        final com.example.tomcat.remindmeapp.utilitis.TextViewRoboto
+                headerTxt = view.findViewById(R.id.enter_place_name_tv);
+
+        final com.example.tomcat.remindmeapp.utilitis.TextViewRoboto
+                infoTxt = view.findViewById(R.id.enter_place_name_info);
+
+        Bundle bundle = this.getArguments();
+        assert  bundle != null;
+        String placeName = bundle.getString(PlacesFragment.PALCE_NAME_DATA, null);
+
+        if(placeName != null){
+            inputTxt.setText(placeName);
+            headerTxt.setText(getString(R.string.already_exist));
+            infoTxt.setVisibility(View.VISIBLE);
+            infoTxt.setText(getString(R.string.already_exist_2));
+            placeExisted = true;
+        }else {
+            placeExisted = false;
+        }
 
         // -------------------------------------------------------------------------- Positive Button
         builder.setPositiveButton(getString(R.string.ok), null); //Setting to null. Is override bellow
@@ -91,6 +108,7 @@ public class DialogPlaceName extends DialogFragment {
                     String placeName = inputTxt.getText().toString();
                     Intent data = new Intent();
                     data.putExtra(PlacesFragment.PALCE_NAME_DATA, placeName);
+                    data.putExtra(PlacesFragment.PLACE_EXIST, placeExisted);
 
                     // Set to onActivityResult
                     getTargetFragment().onActivityResult(

@@ -34,7 +34,7 @@ public class DialogActions extends DialogFragment {
         final com.example.tomcat.remindmeapp.utilitis.TextViewRoboto
                 whenYouTxt = view.findViewById(R.id.when_you);
         String currString;
-        if (AddReminderActivity.CURRENT_STATE == AddReminderActivity.WHEN_ARRIVE){
+        if (AddReminderActivity.CURRENT_STATE == AddReminderActivity.WHEN_ENTER){
            currString = getString(R.string.in) + ":";
         } else {
             currString = getString(R.string.out) + ":";

@@ -32,9 +32,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.tomcat.remindmeapp.data.ActionsContract;
+import com.example.tomcat.remindmeapp.data.AppContentProvider;
 import com.example.tomcat.remindmeapp.data.RemindersContract;
 import com.example.tomcat.remindmeapp.models.Actions;
-import com.example.tomcat.remindmeapp.models.Places;
 import com.example.tomcat.remindmeapp.models.Reminder;
 import com.example.tomcat.remindmeapp.places.PlacesFragment;
 
@@ -75,12 +75,13 @@ public class AddReminderActivity extends AppCompatActivity {
     public final static int SUN = 512;
     public final static int []WEEK_DAYS = {MON, TUE, WED, THU, FRI, SAT, SUN};
 
-    public final static int REMIND_IS_ACTIVE = 1;
+    @SuppressWarnings("unused")
     public final static int REMIND_IS_INACTIVE = 0;
+    public final static int REMIND_IS_ACTIVE = 1;
 
-    final static int WHEN_ARRIVE = 0;
-    final static int WHEN_GET_OUT = 1;
-    static int CURRENT_STATE = WHEN_ARRIVE;
+    public final static int WHEN_ENTER = 1;
+    public final static int WHEN_EXIT = 2;
+    static int CURRENT_STATE = WHEN_ENTER;
 
     final static String REMINDER_SETTINGS = "reminder"; //Cyclic or one-time reminder settings
     final static String REMINDER_ACTIONS = "actions"; // Action related to the reminder settings E.g. sending SMS
@@ -96,7 +97,7 @@ public class AddReminderActivity extends AppCompatActivity {
     private String smsNumber = null;
     private String smsMessage = null;
 
-    private int placeID = -1;
+    private String placeID = null;
 
     public final static String SELECTED_REMINDER = "sel_rem";
     public final static String NEW_OR_EDIT = "new_edit";
@@ -121,21 +122,22 @@ public class AddReminderActivity extends AppCompatActivity {
         String title = null;
 
         switch(editOrNewRem) {
-            case NEW_REMINDER: // ----------------------------------------------------------------- NEW REMONDER
+            case NEW_REMINDER: // ----------------------------------------------------------------- NEW REMINDER
                 title = getString(R.string.add_new_reminder);
                 CURRENT_SETTINGS = 250;
                 break;
 
-            case EDIT_REMINDER: // ----------------------------------------------------------------- EDIT REMONDER
+            case EDIT_REMINDER: // ----------------------------------------------------------------- EDIT REMINDER
                 title = getString(R.string.edit_reminder);
 
                 Reminder selecterReminder = getIntent().getParcelableExtra(SELECTED_REMINDER);
-                Places selectPlace = getIntent().getParcelableExtra(SELECTED_PLACE);
+                //Places selectPlace = getIntent().getParcelableExtra(SELECTED_PLACE);
 
                 reminderID = selecterReminder.getRemIDinDB();
 
-                placeNameTxt.setText(selectPlace.getPlaceName()); // ------------------------- Place
                 placeID = selecterReminder.getPlaceID();
+                placeNameTxt.setText(
+                        AppContentProvider.getPlaceNameBasedGoogleID(this, placeID)); // ---- Place
 
                 CURRENT_STATE = selecterReminder.getInOut(); // -------------------------- In or OUT
                 inputTxt.setText(selecterReminder.getName()); // --------------------- Reminder name
@@ -171,11 +173,7 @@ public class AddReminderActivity extends AppCompatActivity {
         getSupportActionBar().setTitle(title);
         addButton.setVisibility(View.VISIBLE);
 
-
-        // TODO Read and set Data on Edit
-        //if(CURRENT_SETTINGS == -1) CURRENT_SETTINGS = 250; // Set default settings > BIN: 11111100
-
-
+        // Default settings > BIN: 11111100
         setInOutButtonsState(CURRENT_STATE);
     }
     private void init(){
@@ -184,11 +182,11 @@ public class AddReminderActivity extends AppCompatActivity {
 
         inButton.setClickable(true);
         inButton.setOnClickListener(new arriveOrOutListener());
-        inButton.setTag(WHEN_ARRIVE);
+        inButton.setTag(WHEN_ENTER);
 
         outButton.setClickable(true);
         outButton.setOnClickListener(new arriveOrOutListener());
-        outButton.setTag(WHEN_GET_OUT);
+        outButton.setTag(WHEN_EXIT);
 
         remindersButton.setClickable(true);
         remindersButton.setOnClickListener(new actionsAndSettingsListener());
@@ -214,7 +212,7 @@ public class AddReminderActivity extends AppCompatActivity {
     private void addRemind() {
         String remName = inputTxt.getText().toString();
 
-        if ((placeID < 0 || (remName.isEmpty()))) {
+        if ((placeID == null || (remName.isEmpty()))) {
 
             errorInput = true;
 
@@ -224,7 +222,7 @@ public class AddReminderActivity extends AppCompatActivity {
                 inputTxtLay.setError(null);
             }
 
-            if (placeID < 0) {
+            if (placeID == null) {
                 placeNameTxt.setTextColor(Color.RED);
             }
 
@@ -234,7 +232,7 @@ public class AddReminderActivity extends AppCompatActivity {
         }
     }
 
-    // --------------------------------------------------------------------------------------------- Writing Data to DB
+    // ********************************************************************************************* Writing Data to DB
     private void writingData(){
         int smsID;
         ContentValues contentValues = new ContentValues();
@@ -286,7 +284,7 @@ public class AddReminderActivity extends AppCompatActivity {
         contentValues.put(RemindersContract.RemindersEntry.COLUMN_IN_OR_OUT, CURRENT_STATE);
 
         // -------------------------------------------------------------------------- Place ID in DB
-        contentValues.put(RemindersContract.RemindersEntry.COLUMN_PLACES_DB_ID, placeID);
+        contentValues.put(RemindersContract.RemindersEntry.COLUMN_PLACES_GOOGLE_ID, placeID);
 
         // ---------------------------------------------------------------------- Reminder is ACTIVE
         contentValues.put(RemindersContract.RemindersEntry.COLUMNM_ACTIVE, REMIND_IS_ACTIVE);
@@ -348,7 +346,7 @@ public class AddReminderActivity extends AppCompatActivity {
                     .addToBackStack("places_fragm")
                     .commit();
     }
-    public void onEnterFromSelectPlace(int placeID, String name){
+    public void onEnterFromSelectPlace(String placeID, String name){
         assert getSupportActionBar() != null;
         getSupportActionBar().setTitle(getString(R.string.add_new_reminder));
         addButton.setVisibility(View.VISIBLE);
@@ -441,11 +439,11 @@ public class AddReminderActivity extends AppCompatActivity {
         final TextView outTv = findViewById(R.id.out_tv);
         final ImageView inOutImage = findViewById(R.id.in_out_image);
 
-        if (currState == WHEN_ARRIVE){
+        if (currState == WHEN_ENTER){
             inTv.setTextColor(getResources().getColor(R.color.colorPrimary));
             outTv.setTextColor(getResources().getColor(R.color.gray));
             inOutImage.setBackground(getResources().getDrawable(R.drawable.in_place));
-        }else if (currState == WHEN_GET_OUT){
+        }else if (currState == WHEN_EXIT){
             inTv.setTextColor(getResources().getColor(R.color.gray));
             outTv.setTextColor(getResources().getColor(R.color.colorPrimary));
             inOutImage.setBackground(getResources().getDrawable(R.drawable.out_place));
