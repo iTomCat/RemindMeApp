@@ -32,6 +32,7 @@ import com.example.tomcat.remindmeapp.AddReminderActivity;
 import com.example.tomcat.remindmeapp.MainActivity;
 import com.example.tomcat.remindmeapp.R;
 import com.example.tomcat.remindmeapp.RemindersFragment;
+import com.example.tomcat.remindmeapp.TestingBroad;
 import com.example.tomcat.remindmeapp.data.AppContentProvider;
 import com.example.tomcat.remindmeapp.data.PlacesContract;
 import com.example.tomcat.remindmeapp.data.RemindersContract;
@@ -123,7 +124,6 @@ public class PlacesFragment extends Fragment implements
         return view;
     }
 
-
     @Override
     public void onResume() {
         super.onResume();
@@ -142,6 +142,13 @@ public class PlacesFragment extends Fragment implements
             ((MainActivity) getActivity()).setActivityListener(PlacesFragment.this);
             // Start Fab Button listener form Activity
         }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mClient.stopAutoManage(getActivity());
+        mClient.disconnect();
     }
 
     @Override
@@ -459,6 +466,9 @@ public class PlacesFragment extends Fragment implements
             addPlace();
             placeWasAdded = true;
         }
+
+
+        new TestingBroad(getActivity(), getContext());
     }
     @Override
     public void onLoaderReset(Loader loader) {

@@ -67,6 +67,11 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         }
 
 
+        int transitionType = Geofence.GEOFENCE_TRANSITION_ENTER;
+        CURRENT_STATE = transitionType;
+        //int geofenceTransition = geofencingEvent.getGeofenceTransition(); PATRZ PONIZEJ
+
+
         List<Geofence> aa = geofencingEvent.getTriggeringGeofences();
         aa.get(0).getRequestId();
         Log.d("GeofTest", "Size " + aa.size());

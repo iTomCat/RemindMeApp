@@ -84,6 +84,11 @@
     <string name="already_exist">The place is already on the list</string>
     <string name="already_exist_2">Do you want to change the name?</string>
 
+    <!--Notification-->
+    <string name="notification">I remind you because you</string>
+    <string name="notification_in">came to</string>
+    <string name="notification_out">go out from</string>
+
 
 
 

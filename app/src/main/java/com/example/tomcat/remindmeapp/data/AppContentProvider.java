@@ -59,7 +59,7 @@ public class AppContentProvider extends ContentProvider{
         uriMatcher.addURI(AUTHORITY, RemindersContract.PATH_REMINDERS,
                 REMINDERS);
         // Single Item
-        uriMatcher.addURI(AUTHORITY, RemindersContract.PATH_REMINDERS + "/#",
+        uriMatcher.addURI(AUTHORITY, RemindersContract.PATH_REMINDERS + "/*",
                 REMINDER_WITH_ID);
 
         // ---------------------------------------------------------------------------------- PLACES

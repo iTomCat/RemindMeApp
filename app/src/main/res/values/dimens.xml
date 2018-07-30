@@ -9,7 +9,7 @@
     <dimen name="custom_tab_layout_height">72dp</dimen>
 
     <!-- CollapsingTool & Logo -->
-    <dimen name="max_height">90dp</dimen>
+    <dimen name="max_height">80dp</dimen>
     <dimen name="tool_bar_height">128dp</dimen>
 
     <!-- Row View -->
