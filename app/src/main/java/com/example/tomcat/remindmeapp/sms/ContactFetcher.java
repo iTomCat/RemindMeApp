@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-class ContactFetcher {
+public class ContactFetcher {
     private final Context context;
 
     ContactFetcher(Context c) {

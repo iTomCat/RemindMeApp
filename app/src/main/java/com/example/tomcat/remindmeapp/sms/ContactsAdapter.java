@@ -31,7 +31,7 @@ public class ContactsAdapter extends ArrayAdapter<Contact> {
         View view = convertView;
         if (view == null) {
             LayoutInflater inflater = LayoutInflater.from(getContext());
-            view = inflater.inflate(R.layout.adapter_contact_item, parent, false);
+            view = inflater.inflate(R.layout.adapter_contact_row, parent, false);
         }
         TextView tvName = view.findViewById(R.id.tvName);
         tvName.setText(contact.name);

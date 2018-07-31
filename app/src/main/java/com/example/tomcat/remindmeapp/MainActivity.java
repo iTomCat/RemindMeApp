@@ -1,5 +1,6 @@
 package com.example.tomcat.remindmeapp;
 
+import android.Manifest;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
@@ -14,6 +15,7 @@ import android.support.annotation.Nullable;
 import android.support.constraint.Group;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -109,6 +111,8 @@ public class MainActivity extends AppCompatActivity implements
 
         viewPageListener(viewPager);
         //displayIntro(0);
+
+
 
 
        /* mClient = new GoogleApiClient.Builder(this)

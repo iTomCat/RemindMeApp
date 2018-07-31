@@ -4,12 +4,18 @@ import android.app.Activity;
 import android.database.Cursor;
 
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.tomcat.remindmeapp.data.AppContentProvider;
 import com.example.tomcat.remindmeapp.data.RemindersContract;
+import com.example.tomcat.remindmeapp.models.Places;
+import com.example.tomcat.remindmeapp.models.Reminder;
+
+import java.util.Arrays;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -21,6 +27,7 @@ import butterknife.ButterKnife;
 public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHolder> {
     private final ReminderAdapterOnClickHandler mClickHandler;
     private Activity activity;
+    private List<Reminder> mRemindersData;
     private Cursor mCursor;
 
     ReminderAdapter(Activity activity, ReminderAdapterOnClickHandler clickHandler) {
@@ -28,11 +35,9 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         this.mClickHandler = clickHandler;
     }
 
-
     public interface ReminderAdapterOnClickHandler {
         void onClick(int position, boolean longClick);
     }
-
 
     @Override
     public ReminderAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -52,8 +57,6 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
             view.setOnClickListener(this);
             view.setOnLongClickListener(this);
             ButterKnife.bind(this, view);
-            //remNameTxt = view.findViewById(R.id.tv_name);
-            //placeNameTxt = view.findViewById(R.id.tv_descr);
         }
 
         @Override
@@ -61,7 +64,6 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
             int adapterPosition = getAdapterPosition();
             mClickHandler.onClick(adapterPosition, false);
         }
-
 
         @Override
         public boolean onLongClick(View view) {
@@ -75,22 +77,13 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
     @Override
     public void onBindViewHolder(ReminderAdapter.ViewHolder holder, int position) {
 
-        int nameIndex = mCursor.getColumnIndex(RemindersContract.RemindersEntry.COLUMN_NAME);
-        int idIndex = mCursor.getColumnIndex(RemindersContract.RemindersEntry._ID);
-        int placeIdIndex = mCursor.getColumnIndex(RemindersContract.RemindersEntry.COLUMN_PLACES_GOOGLE_ID);
-
-        mCursor.moveToPosition(position); // get to the right location in the cursor
-
-
-        String descr = mCursor.getString(nameIndex);
+        String descr = mRemindersData.get(position).getName();
         holder.remNameTxt.setText(descr);
 
-
-        int id = mCursor.getInt(idIndex);
+        int id = mRemindersData.get(position).getRemIDinDB();
         holder.itemView.setTag(id);
 
-        // ----------------------------------------------------------- Get data from DB Places
-        String currPlaceID = mCursor.getString(placeIdIndex);
+        String currPlaceID = mRemindersData.get(position).getPlaceID();
         String placeName = AppContentProvider.getPlaceNameBasedGoogleID(activity, currPlaceID);
         if (placeName != null) holder.placeNameTxt.setText(placeName);
 
@@ -125,24 +118,17 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
     @Override
     public int getItemCount() {
-        if (mCursor == null) {
-            return 0;
-        }
-        return mCursor.getCount();
+        if (null == mRemindersData) return 0;
+        return mRemindersData.size();
     }
 
+    void refresh(){
+        this.notifyDataSetChanged();
+    }
 
-    void swapCursor(Cursor c) {
-        // check if this cursor is the same as the previous cursor (mCursor)
-        if (mCursor == c) {
-            return; // bc nothing has changed
-        }
-        this.mCursor = c; // new cursor value assigned
-
-        //check if this is a valid cursor, then update the cursor
-        if (c != null) {
-            this.notifyDataSetChanged();
-        }
+    void setRemindersData(List<Reminder> remidersData) {
+        mRemindersData = remidersData;
+        notifyDataSetChanged();
     }
 
 }

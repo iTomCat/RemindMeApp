@@ -75,7 +75,7 @@ public class AppContentProvider extends ContentProvider{
         uriMatcher.addURI(AUTHORITY, ActionsContract.PATH_ACTIONS,
                 ACTIONS);
         // Single Item
-        uriMatcher.addURI(AUTHORITY, ActionsContract.PATH_ACTIONS + "/#",
+        uriMatcher.addURI(AUTHORITY, ActionsContract.PATH_ACTIONS + "/*",
                 ACTIONS_WITH_ID);
 
         return uriMatcher;
@@ -87,16 +87,15 @@ public class AppContentProvider extends ContentProvider{
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection,
                         @Nullable String[] selectionArgs, @Nullable String sortOrder) {
 
-
         int match = sUriMatcher.match(uri);
-        Log.d("TestQ", "id " +  match);
-
-
+        final SQLiteDatabase dbRem = remindersDb.getReadableDatabase();
+        final SQLiteDatabase dbPlaces = placesDb.getReadableDatabase();
+        final SQLiteDatabase dbActions = actionsDb.getReadableDatabase();
 
         Cursor retCursor;
         switch (match) {
             case REMINDERS:
-                final SQLiteDatabase dbRem = remindersDb.getReadableDatabase();
+                //final SQLiteDatabase dbRem = remindersDb.getReadableDatabase();
                 retCursor = dbRem.query(RemindersContract.RemindersEntry.TABLE_NAME,
                         projection,
                         selection,
@@ -107,12 +106,12 @@ public class AppContentProvider extends ContentProvider{
                 break;
 
             case REMINDER_WITH_ID:
-                final SQLiteDatabase dbRem2 = remindersDb.getReadableDatabase();
+                //final SQLiteDatabase dbRem2 = remindersDb.getReadableDatabase();
                 String id = uri.getPathSegments().get(1);
                 String mSelection = selection + "=?";
 
                 String[] mSelectionArgs = new String[] {id};
-                retCursor = dbRem2.query(RemindersContract.RemindersEntry.TABLE_NAME,
+                retCursor = dbRem.query(RemindersContract.RemindersEntry.TABLE_NAME,
                         projection,
                         mSelection,
                         mSelectionArgs,
@@ -122,7 +121,7 @@ public class AppContentProvider extends ContentProvider{
                 break;
 
             case PLACES:
-                final SQLiteDatabase dbPlaces = placesDb.getReadableDatabase();
+                //final SQLiteDatabase dbPlaces = placesDb.getReadableDatabase();
                 retCursor = dbPlaces.query(PlacesContract.PlacesEntry.TABLE_NAME,
                         projection,
                         selection,
@@ -133,12 +132,12 @@ public class AppContentProvider extends ContentProvider{
                 break;
 
             case PLACES_WITH_ID:
-                final SQLiteDatabase dbPlaces2 = placesDb.getReadableDatabase();
+                //final SQLiteDatabase dbPlaces2 = placesDb.getReadableDatabase();
                 String idPalce = uri.getPathSegments().get(1);
                 String mSelectionPlace = selection + "=?";
 
                 String[] mSelectionArgsPlace = new String[] {idPalce};
-                retCursor = dbPlaces2.query(PlacesContract.PlacesEntry.TABLE_NAME,
+                retCursor = dbPlaces.query(PlacesContract.PlacesEntry.TABLE_NAME,
                         projection,
                         mSelectionPlace,
                         mSelectionArgsPlace,
@@ -148,11 +147,26 @@ public class AppContentProvider extends ContentProvider{
                 break;
 
             case ACTIONS:
-                final SQLiteDatabase dbActions = actionsDb.getReadableDatabase();
+              //  final SQLiteDatabase dbActions = actionsDb.getReadableDatabase();
                 retCursor = dbActions.query(ActionsContract.ActionsEntry.TABLE_NAME,
                         projection,
                         selection,
                         selectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
+
+            case ACTIONS_WITH_ID:
+                //final SQLiteDatabase dbActions2 = actionsDb.getReadableDatabase();
+                String idAction = uri.getPathSegments().get(1);
+                String mActionSelection = selection + "=?";
+
+                String[] mActionSelectionArgs = new String[] {idAction};
+                retCursor = dbActions.query(ActionsContract.ActionsEntry.TABLE_NAME,
+                        projection,
+                        mActionSelection,
+                        mActionSelectionArgs,
                         null,
                         null,
                         sortOrder);
@@ -216,8 +230,10 @@ public class AppContentProvider extends ContentProvider{
                 long id_actions = dbActions.insert(
                         ActionsContract.ActionsEntry.TABLE_NAME, null, contentValues);
                 if ( id_actions > 0 ) {
+                    /*returnUri = ContentUris.withAppendedId(
+                            PlacesContract.PlacesEntry.CONTENT_URI, id_actions);*/
                     returnUri = ContentUris.withAppendedId(
-                            PlacesContract.PlacesEntry.CONTENT_URI, id_actions);
+                            ActionsContract.ActionsEntry.CONTENT_URI, id_actions);
                 } else {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 }
@@ -242,7 +258,6 @@ public class AppContentProvider extends ContentProvider{
         int tasksDeleted; // starts as 0
 
         // Write the code to delete a single row of data
-        // [Hint] Use selections to delete an item by its row ID
         switch (match) {
             // Handle the single item case, recognized by the ID included in the URI path
             case REMINDER_WITH_ID:
@@ -369,9 +384,9 @@ public class AppContentProvider extends ContentProvider{
                 null);
 
         assert cursor != null;
-        int ColumnInDB = cursor.getColumnIndex(PlacesContract.PlacesEntry.COLUMN_PLACE_GOOGLE_ID);
+        int columnInDB = cursor.getColumnIndex(PlacesContract.PlacesEntry.COLUMN_PLACE_GOOGLE_ID);
         cursor.moveToFirst(); // MOVE TO FIRST
-        String googleID = cursor.getString(ColumnInDB);
+        String googleID = cursor.getString(columnInDB);
         cursor.close();
 
         return googleID;

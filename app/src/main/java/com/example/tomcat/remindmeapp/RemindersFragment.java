@@ -89,49 +89,6 @@ public class RemindersFragment extends Fragment implements
         mRecyclerView = view.findViewById(R.id.recycler_view_reminders);
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.setLayoutManager(layoutManager);
-        //mRecyclerView.setAdapter(adapter);
-
-
-        //TEMP !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // Get Name BY ID by  REMINDER_WITH_ID:
-       /* String stringId = Integer.toString(5);
-        Uri uri = RemindersContract.RemindersEntry.CONTENT_URI;
-        uri = uri.buildUpon().appendPath(stringId).build();
-
-        Cursor cursor = getActivity().getContentResolver().query(uri,
-                null,
-                RemindersContract.RemindersEntry._ID,
-                null,
-                null);
-
-        assert cursor != null;
-        int IDinDB = cursor.getColumnIndex(RemindersContract.RemindersEntry.COLUMN_NAME);
-        cursor.moveToFirst(); // MOVE TO FIRST
-        String name = cursor.getString(IDinDB);
-
-        Log.d("TestQ", "reminder3 " +  name);
-*/
-
-        /*//String stringId = Integer.toString(5);
-        String stringId = "ChIJY2m4QCfMFkcRppUtdIZptFo";
-        Uri uri = PlacesContract.PlacesEntry.CONTENT_URI;
-        uri = uri.buildUpon().appendPath(stringId).build();
-
-        Cursor cursor = getActivity().getContentResolver().query(uri,
-                null,
-                PlacesContract.PlacesEntry.COLUMN_PLACE_GOOGLE_ID,
-                null,
-                null);
-
-        assert cursor != null;
-        Log.d("TestQ", "cursor.getCount() " +  cursor.getCount());
-        int IDinDB = cursor.getColumnIndex(PlacesContract.PlacesEntry.COLUMN_PLACE_NAME);
-        cursor.moveToFirst(); // MOVE TO FIRST
-        String name = cursor.getString(IDinDB);
-        cursor.close();
-
-        Log.d("TestQ", "reminder3 " +  name);*/
-
 
 
        /* new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
@@ -196,6 +153,7 @@ public class RemindersFragment extends Fragment implements
             // ------------------------------------------------------------------------- Actions SMS
             if (selectedReminder.getAction() == AddReminderActivity.ACTION_SEND_SMS){
                 int currActionID = selectedReminder.getSmsID();
+                Log.d("Lala", "currActionID " + currActionID);
                 int posOnListByIDAction = -1;
                 //
                 for(int i=0; i<mActionsList.size(); i++){
@@ -205,6 +163,7 @@ public class RemindersFragment extends Fragment implements
                         break;
                     }
                 }
+                Log.d("Lala", "posOnListByIDAction " + posOnListByIDAction);
                 Actions selectedAction =  mActionsList.get(posOnListByIDAction);
                 intent.putExtra(AddReminderActivity.SELECTED_ACTION, selectedAction);
             }
@@ -290,13 +249,16 @@ public class RemindersFragment extends Fragment implements
         switch (loader.getId()) {
             case REMINDERS_ID_LOADER:
                 mRemindersData = (Cursor) loadedData;
-                mReminderList = AppContentProvider.remindersListFromCursor(mRemindersData);
+
                 loadFromDB(ACTIONS_ID_LOADER); // Start Load Actions form DB
                 break;
             case ACTIONS_ID_LOADER:
                 Cursor mActionsData = (Cursor) loadedData;
                 mActionsList = AppContentProvider.actionsListFromCursor(mActionsData);
-                adapter.swapCursor(mRemindersData);
+                //adapter.swapCursor(mRemindersData);
+
+                mReminderList = AppContentProvider.remindersListFromCursor(mRemindersData);
+                adapter.setRemindersData(mReminderList);
                 mRecyclerView.setAdapter(adapter);
 
                 // Intro Txt
@@ -314,6 +276,7 @@ public class RemindersFragment extends Fragment implements
 
     @Override
     public void onLoaderReset(Loader loader) {
-        adapter.swapCursor(null);
+        //adapter.swapCursor(null);
+        adapter.refresh();
     }
 }

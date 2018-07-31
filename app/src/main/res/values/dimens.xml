@@ -10,7 +10,7 @@
 
     <!-- CollapsingTool & Logo -->
     <dimen name="max_height">80dp</dimen>
-    <dimen name="tool_bar_height">128dp</dimen>
+    <dimen name="tool_bar_height">138dp</dimen>
 
     <!-- Row View -->
     <dimen name="my_card_height">110dp</dimen>
