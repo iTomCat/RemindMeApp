@@ -125,7 +125,7 @@ public class AddReminderActivity extends AppCompatActivity {
         switch(editOrNewRem) {
             case NEW_REMINDER: // ----------------------------------------------------------------- NEW REMINDER
                 title = getString(R.string.add_new_reminder);
-                CURRENT_SETTINGS = 250;
+                CURRENT_SETTINGS = 249;  //Remind only Once = 250
                 break;
 
             case EDIT_REMINDER: // ----------------------------------------------------------------- EDIT REMINDER
@@ -147,9 +147,7 @@ public class AddReminderActivity extends AppCompatActivity {
 
                 CURRENT_ACTION = selecterReminder.getAction();  // -------------------------- Action
 
-
                 noSMSonEnter = selecterReminder.getSmsID() == -1;
-                Log.d("SMSTAg", "In "  + CURRENT_ACTION + "   " + noSMSonEnter);
 
                 if (CURRENT_ACTION == ACTION_SEND_SMS) {  // ----------------------------------- SMS
                     Actions action = getIntent().getParcelableExtra(SELECTED_ACTION);
@@ -244,17 +242,10 @@ public class AddReminderActivity extends AppCompatActivity {
 
         // ----------------------------------------------------------------------------------------- Action SMS
         smsID = -1;
-
-        Log.d("SMSTAg", "CURRENT_ACTION " + CURRENT_ACTION + "  editOrNewRem " + editOrNewRem);
-
         if(CURRENT_ACTION == ACTION_SEND_SMS) {
             contentValues.put(ActionsContract.ActionsEntry.COLUMN_SMS_CONTACT, smsContact);
             contentValues.put(ActionsContract.ActionsEntry.COLUMN_SMS_NUMBER, smsNumber);
             contentValues.put(ActionsContract.ActionsEntry.COLUMN_SMS_MESSAGE, smsMessage);
-
-            Log.d("SMSTAg", "smsContact " + smsContact);
-
-            //if (editOrNewRem == NEW_REMINDER || editOrNewRem == EDIT_REMINDER) {
 
             // ------------------------------------------------------------------------ NEW REMINDER
             if (editOrNewRem == NEW_REMINDER) {
@@ -265,8 +256,6 @@ public class AddReminderActivity extends AppCompatActivity {
                 Log.d("SMSTAg", "smsID " + smsID);
             }
 
-
-
             // --------------------------------------------------------------- Edit Remind > ADD SMS
             if (editOrNewRem == EDIT_REMINDER && noSMSonEnter) {
 
@@ -275,9 +264,6 @@ public class AddReminderActivity extends AppCompatActivity {
                 smsID = (Long.valueOf(uri.getLastPathSegment())).intValue(); // Get action sms ID
                 Log.d("SMSTAg", "Edit Reminder No SMS ON ENTER " + smsID);
             }
-
-            // -------------------------------------------------------------- Edit Remind > EDIT SMS
-
 
             // -------------------------------------------------------------- Edit Remind > EDIT SMS
             if (editOrNewRem == EDIT_REMINDER && actionID > 0 &&!noSMSonEnter) {
@@ -332,17 +318,6 @@ public class AddReminderActivity extends AppCompatActivity {
 
             getContentResolver().update(uri, contentValues, null, null);
         }
-
-
-
-        //Uri uri = getContentResolver().insert(RemindersContract.RemindersEntry.CONTENT_URI,
-        // contentValues);
-
-        /*if(uri != null) {
-            Toast.makeText(getBaseContext(), uri.toString(), Toast.LENGTH_LONG).show();
-        }else{
-            Toast.makeText(getBaseContext(), "Error", Toast.LENGTH_SHORT).show();
-        }*/
         finish();
     }
 
@@ -497,7 +472,6 @@ public class AddReminderActivity extends AppCompatActivity {
             weekDays.setVisibility(View.VISIBLE);
             showPickedWeekDays();
         }
-
         settingsTxt.setText(currSettings);
     }
 

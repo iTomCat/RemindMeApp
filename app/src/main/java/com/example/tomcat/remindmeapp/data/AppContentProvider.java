@@ -135,7 +135,6 @@ public class AppContentProvider extends ContentProvider{
                 //final SQLiteDatabase dbPlaces2 = placesDb.getReadableDatabase();
                 String idPalce = uri.getPathSegments().get(1);
                 String mSelectionPlace = selection + "=?";
-
                 String[] mSelectionArgsPlace = new String[] {idPalce};
                 retCursor = dbPlaces.query(PlacesContract.PlacesEntry.TABLE_NAME,
                         projection,
@@ -161,7 +160,6 @@ public class AppContentProvider extends ContentProvider{
                 //final SQLiteDatabase dbActions2 = actionsDb.getReadableDatabase();
                 String idAction = uri.getPathSegments().get(1);
                 String mActionSelection = selection + "=?";
-
                 String[] mActionSelectionArgs = new String[] {idAction};
                 retCursor = dbActions.query(ActionsContract.ActionsEntry.TABLE_NAME,
                         projection,
@@ -349,12 +347,12 @@ public class AppContentProvider extends ContentProvider{
 
 
     // ********************************************************************************************* Get Name Place from db based on GOOGLE ID
-    public static String getPlaceNameBasedGoogleID (Activity activity, String currPlaceID){
+    public static String getPlaceNameBasedGoogleID (Context context, String currPlaceID){
 
         Uri uri = PlacesContract.PlacesEntry.CONTENT_URI;
         uri = uri.buildUpon().appendPath(currPlaceID).build();
 
-        Cursor cursor = activity.getContentResolver().query(uri,
+        Cursor cursor = context.getContentResolver().query(uri,
                 null,
                 PlacesContract.PlacesEntry.COLUMN_PLACE_GOOGLE_ID,
                 null,

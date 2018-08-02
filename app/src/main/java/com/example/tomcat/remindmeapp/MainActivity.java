@@ -1,34 +1,16 @@
 package com.example.tomcat.remindmeapp;
 
-import android.Manifest;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
-import android.graphics.BitmapFactory;
-import android.graphics.Movie;
 import android.graphics.Typeface;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.constraint.Group;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.TabLayout;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.app.TaskStackBuilder;
-import android.support.v4.content.AsyncTaskLoader;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.app.NotificationCompat;
-import android.util.Log;
 import android.view.View;
 import android.view.animation.OvershootInterpolator;
 import android.view.animation.ScaleAnimation;
@@ -36,24 +18,9 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import com.example.tomcat.remindmeapp.data.AppContentProvider;
-import com.example.tomcat.remindmeapp.data.RemindersContract;
-import com.example.tomcat.remindmeapp.models.Reminder;
-import com.example.tomcat.remindmeapp.places.Geofencing;
 import com.example.tomcat.remindmeapp.places.PlacesFragment;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
-import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
-import com.google.android.gms.location.Geofence;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.location.places.Places;
-
-import org.json.JSONException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -68,9 +35,7 @@ public class MainActivity extends AppCompatActivity implements
     public static Typeface robotoFont;
 
     private int currentPage = 0;
-    /*private GoogleApiClient mClient;
-    private Geofencing mGeofencing;*/
-
+    public static int selPage;
 
     @BindView(R.id.rem_logo) ImageView reminderLogo;
     @BindView(R.id.app_bar_layout) AppBarLayout appBarLayout;
@@ -89,60 +54,15 @@ public class MainActivity extends AppCompatActivity implements
         robotoFont = Typeface.createFromAsset(this.getAssets(), "fonts/Roboto-Regular.ttf");
 
 
-        //CollapsingToolbarLayout toolbarLayout = findViewById(R.id.collapsing_toolbar_layout);
-        //toolbarLayout.setExpandedTitleColor(Color.BLUE);
-
-        //AppBarLayout appBarLayout = findViewById(R.id.app_bar_layout);
         appBarLayout.addOnOffsetChangedListener(this);
-        //reminderLogo = findViewById(R.id.image_xyz);
 
-        //toolbar = (Toolbar) findViewById(R.id.toolbar);
-        //setSupportActionBar(toolbar);
-
-        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        //CustomViewPager viewPager = findViewById(R.id.viewpager);
         viewPager.setPagingEnabled(true); //Swipe on/off
         setupViewPager(viewPager);
 
-        //TabLayout tabLayout = findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
 
-
         viewPageListener(viewPager);
-        //displayIntro(0);
-
-
-
-
-       /* mClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .addApi(Places.GEO_DATA_API)
-                .enableAutoManage(this, this)
-                .build();
-        mGeofencing = new Geofencing(this, mClient);*/
     }
-
-    /*// ********************************************************************************************* Google Play Services
-    //Called when the Google API Client is successfully connected
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-
-        Log.d("ConnectServ", "CONNECT");
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-    }
-*/
 
 
 
@@ -184,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-
+        if(selPage == 1) displayIntro(1);
     }
 
     // ********************************************************************************************* Page Adapter
@@ -233,7 +153,6 @@ public class MainActivity extends AppCompatActivity implements
         final TextView introTxt =  findViewById(R.id.remind_info);
         final ImageView imageIntro = findViewById(R.id.lines);
 
-
         if (currentPage == 1) { // Places
             visibility = View.GONE;
         }else { // Reminders
@@ -242,7 +161,6 @@ public class MainActivity extends AppCompatActivity implements
 
         introTxt.setVisibility(visibility);
         imageIntro.setVisibility(visibility);
-
     }
 
     // --------------------------------------------------------------------------------------------- View Pager Listener
@@ -263,9 +181,9 @@ public class MainActivity extends AppCompatActivity implements
                     privacy.setVisibility(View.GONE);
                 }
 
+                selPage = position;
                 displayIntro(position);
             }
-
 
             @Override
             public void onPageScrollStateChanged(int state) {

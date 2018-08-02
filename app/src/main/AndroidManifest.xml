@@ -40,7 +40,7 @@
             android:exported="false">
         </provider>
 
-        <receiver android:name="places.GeofenceBroadcastReceiver" />
+        <receiver android:name="com.example.tomcat.remindmeapp.places.GeofenceBroadcastReceiver" />
 
     </application>
 

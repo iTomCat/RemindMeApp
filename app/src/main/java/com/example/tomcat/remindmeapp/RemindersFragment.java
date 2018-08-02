@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.constraint.Group;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
@@ -18,7 +17,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -30,8 +28,6 @@ import com.example.tomcat.remindmeapp.models.Actions;
 import com.example.tomcat.remindmeapp.models.Reminder;
 
 import java.util.List;
-
-import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
@@ -44,7 +40,6 @@ public class RemindersFragment extends Fragment implements
         LoaderManager.LoaderCallbacks{
 
     public ReminderAdapter.ReminderAdapterOnClickHandler mClickHandler = this;
-    private boolean init = true;
 
     private final static int REMINDERS_ID_LOADER = 24;
     private final static int ACTIONS_ID_LOADER = 28;
@@ -255,23 +250,21 @@ public class RemindersFragment extends Fragment implements
             case ACTIONS_ID_LOADER:
                 Cursor mActionsData = (Cursor) loadedData;
                 mActionsList = AppContentProvider.actionsListFromCursor(mActionsData);
-                //adapter.swapCursor(mRemindersData);
-
                 mReminderList = AppContentProvider.remindersListFromCursor(mRemindersData);
+
                 adapter.setRemindersData(mReminderList);
                 mRecyclerView.setAdapter(adapter);
 
                 // Intro Txt
-                int visibility = (RemindersFragment.mRemindersData.getCount() > 0) ? View.GONE : View.VISIBLE;
-                introTxt.setVisibility(visibility);
-                imageIntro.setVisibility(visibility);
-                init = false;
-
+                if(MainActivity.selPage == 0) {
+                    int visibility = (RemindersFragment.mRemindersData.getCount() > 0) ? View.GONE : View.VISIBLE;
+                    introTxt.setVisibility(visibility);
+                    imageIntro.setVisibility(visibility);
+                }
                 break;
             default:
                 break;
         }
-        //mRecyclerView.smoothScrollToPosition(listPos);
     }
 
     @Override

@@ -3,18 +3,20 @@ package com.example.tomcat.remindmeapp;
 import android.app.Activity;
 import android.database.Cursor;
 
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.example.tomcat.remindmeapp.data.AppContentProvider;
-import com.example.tomcat.remindmeapp.data.RemindersContract;
-import com.example.tomcat.remindmeapp.models.Places;
 import com.example.tomcat.remindmeapp.models.Reminder;
 
-import java.util.Arrays;
 import java.util.List;
 
 import butterknife.BindView;
@@ -49,8 +51,18 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         @BindView(R.id.tv_name)
         com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight remNameTxt;
 
-        @BindView(R.id.tv_descr)
+        @BindView(R.id.place_descr)
         com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight placeNameTxt;
+
+        @BindView(R.id.action_descr)
+        com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight actionTxt;
+
+        @BindView(R.id.week_days_tv)
+        com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight weekDays;
+
+        @BindView(R.id.in_out_icon) ImageView inOutIcon;
+
+        @BindView(R.id.sms_icon) ImageView smsIcon;
 
         ViewHolder(View view) {
             super(view);
@@ -85,35 +97,93 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
         String currPlaceID = mRemindersData.get(position).getPlaceID();
         String placeName = AppContentProvider.getPlaceNameBasedGoogleID(activity, currPlaceID);
-        if (placeName != null) holder.placeNameTxt.setText(placeName);
+        int txtColor = activity.getResources().getColor(R.color.colorPrimary);;
+        String placeDescr = null;
+        int icon = R.drawable.ic_icon_out;
+
+        holder.inOutIcon.setImageResource(R.drawable.ic_icon_in);
 
 
-        /*String imageUrl = reminders.get(position).getImage();
-        if (imageUrl.isEmpty()){
-            switch (holder.id) {
+        if (mRemindersData.get(position).getInOut() == AddReminderActivity.WHEN_ENTER){
+            placeDescr = activity.getString(R.string.in_at) + " ";
+            txtColor = activity.getResources().getColor(R.color.green);
+            icon = R.drawable.ic_icon_in;
+        }else if (mRemindersData.get(position).getInOut() == AddReminderActivity.WHEN_EXIT){
+            placeDescr = activity.getString(R.string.out) + ": ";
+            txtColor = activity.getResources().getColor(R.color.colorPrimary);
+            icon = R.drawable.ic_icon_out;
+        }
 
-                case 1: // ------------------------------------------------------------------------- Nutella Pie
-                    Picasso.with(context).load(R.drawable.nutella_pie)
-                            .fit().centerCrop().into(holder.cakeView);
-                    break;
-                case 2: // ------------------------------------------------------------------------- Brownies
-                    Picasso.with(context).load(R.drawable.brownies)
-                            .fit().centerCrop().into(holder.cakeView);
-                    break;
-                case 3: // ------------------------------------------------------------------------- Yellow Cake
-                    Picasso.with(context).load(R.drawable.yellow_cake)
-                            .fit().centerCrop().into(holder.cakeView);
-                    break;
-                case 4: //-------------------------------------------------------------------------- Cheesecake
-                    Picasso.with(context).load(R.drawable.cheescake_1)
-                            .fit().centerCrop().into(holder.cakeView);
-                    break;
-            }
-        } else {
-            Picasso.with(context).load(imageUrl).fit().into(holder.cakeView);
-        }*/
+
+        String place = placeDescr + placeName;
+        if (placeName != null) holder.placeNameTxt.setText(place);
+        holder.placeNameTxt.setTextColor(txtColor);
+
+        holder.inOutIcon.setImageResource(icon);
+
+        // ----------------------------------------------------------------------------------------- SETTINGS
+        String currSettings;
+        int settings = mRemindersData.get(position).getSettings();
+
+        if((settings & AddReminderActivity.REMIND_ONCE) > 0){ // ----------------------- Remind Once
+            currSettings = activity.getString(R.string.remind_once);
+
+        }else if ((settings & AddReminderActivity.REMIND_ALWAYS) > 0){ // ------------ Remind Always
+            currSettings = activity.getString(R.string.remind_always);
+
+        }else { // ------------------------------------------------------ Remind on days of the week
+            currSettings = activity.getString(R.string.remind_me_on);
+            holder.weekDays.setVisibility(View.VISIBLE);
+            showPickedWeekDays(settings);
+            holder.weekDays.setText(TextUtils.concat(showPickedWeekDays(settings)));
+        }
+
+
+        // ----------------------------------------------------------------------------------------- ACTIONS
+        if((mRemindersData.get(position).getAction() > 0)) { // ---------------------------- Send SMS
+            holder.smsIcon.setVisibility(View.VISIBLE);
+        }
+
+        /*}else if ((settings & AddReminderActivity.REMIND_ALWAYS) > 0) { // ---------------- no Action
+                   }*/
+
+
+        holder.actionTxt.setText(currSettings);
+
+
 
     }
+
+
+    // ********************************************************************************************* Picked Week Days
+    private SpannableString[] showPickedWeekDays(int settings){
+        SpannableString[] finalString = new SpannableString[7];
+        String originalText;
+
+        for(int i=0; i<=6; i++) {
+
+            String dayName = "day_" + Integer.toString(i);
+            int dayNameRef = activity.getResources().getIdentifier
+                    (dayName, "string", activity.getPackageName());
+
+           originalText = activity.getString(dayNameRef);
+
+            if (i >0 ) originalText = "  " + originalText;
+            SpannableString highlighted = new SpannableString(originalText);
+
+            int currDay = AddReminderActivity.WEEK_DAYS[i];
+
+            if ((settings & currDay) > 0){
+                highlighted.setSpan(new ForegroundColorSpan(ContextCompat.getColor
+                                (activity, R.color.colorPrimary)),
+                        0, originalText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+            finalString[i]= highlighted;
+        }
+        return finalString;
+        //weekDaysTv.setText(TextUtils.concat(finalString));
+    }
+
 
 
     @Override
