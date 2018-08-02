@@ -18,6 +18,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.example.tomcat.remindmeapp.geofences.GeoSyncJob;
 import com.example.tomcat.remindmeapp.places.PlacesFragment;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +64,10 @@ public class MainActivity extends AppCompatActivity implements
         tabLayout.setupWithViewPager(viewPager);
 
         viewPageListener(viewPager);
+
+        GeoSyncJob.scheduleJob();
     }
+
 
 
 

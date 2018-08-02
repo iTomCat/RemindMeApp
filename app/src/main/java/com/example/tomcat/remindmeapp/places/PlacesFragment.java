@@ -24,18 +24,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.tomcat.remindmeapp.AddReminderActivity;
 import com.example.tomcat.remindmeapp.MainActivity;
 import com.example.tomcat.remindmeapp.R;
 import com.example.tomcat.remindmeapp.RemindersFragment;
-import com.example.tomcat.remindmeapp.TestingBroad;
 import com.example.tomcat.remindmeapp.data.AppContentProvider;
 import com.example.tomcat.remindmeapp.data.PlacesContract;
 import com.example.tomcat.remindmeapp.data.RemindersContract;
+import com.example.tomcat.remindmeapp.geofences.Geofencing;
 import com.example.tomcat.remindmeapp.models.Places;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
@@ -69,8 +67,9 @@ public class PlacesFragment extends Fragment implements
 
     public PlacesAdapter.PlacesAdapterOnClickHandler mClickHandler = this;
 
-    private GoogleApiClient mClient;
+    public static GoogleApiClient mClient;
     private Geofencing mGeofencing;
+    private boolean refreshGeoData = true;
 
 
     public static final String TAG = MainActivity.class.getSimpleName();
@@ -167,8 +166,6 @@ public class PlacesFragment extends Fragment implements
     }
 
     public void refreshGeoPlacesData(List<Places> placesList) {
-        Log.d("GeofTest", "REFRESH");
-
         List<String> guids = new ArrayList<>();
         for (Places placeModel : placesList) {
             String placeID = placeModel.getPlaceGoogleID();
@@ -258,6 +255,7 @@ public class PlacesFragment extends Fragment implements
 
     // --------------------------------------------------------------------------------------------- Writing Place to DB
     private void addPlaceToDB(String placeName, String placeID, boolean plceExisted){
+        refreshGeoData = true;
         ContentValues contentValues = new ContentValues();
         contentValues.put(PlacesContract.PlacesEntry.COLUMN_PLACE_GOOGLE_ID, placeID);
         contentValues.put(PlacesContract.PlacesEntry.COLUMN_PLACE_NAME, placeName);
@@ -272,11 +270,7 @@ public class PlacesFragment extends Fragment implements
             getActivity().getContentResolver().update(uri, contentValues, null, null);
         }
 
-        //assert uri != null;
-        //int placeIDinDB = (Long.valueOf(uri.getLastPathSegment())).intValue(); // Get action sms ID
-
         if(ifEnterFromAddReminder && placeWasAdded)closeFragment(placeName, placeID);
-
     }
 
     // --------------------------------------------------------------------------------------------- Show Dialog Place Name
@@ -409,6 +403,7 @@ public class PlacesFragment extends Fragment implements
         uri = uri.buildUpon().appendPath(stringId).build();
 
         getActivity().getContentResolver().delete(uri, null, null);
+        refreshGeoData = true;
         loadPlacesFromDB();
 
     }
@@ -459,7 +454,10 @@ public class PlacesFragment extends Fragment implements
         mPlacesList = AppContentProvider.placesListFromCursor(mPlacesData);
         adapter.setRemindersData(mPlacesList);
 
-        if (mPlacesList.size() > 0) refreshGeoPlacesData(mPlacesList);
+        if (mPlacesList.size() > 0 && refreshGeoData){
+            refreshGeoPlacesData(mPlacesList);
+            refreshGeoData = false;
+        }
 
         // if Place List is Empty - Enter to Add Place Dialog
         if(ifEnterFromAddReminder && (mPlacesList.size() == 0) && (placeID == null)){
@@ -467,13 +465,13 @@ public class PlacesFragment extends Fragment implements
             placeWasAdded = true;
         }
 
-
-        new TestingBroad(getActivity(), getContext());
     }
     @Override
     public void onLoaderReset(Loader loader) {
         adapter.refresh();
     }
+
+
 
     // ********************************************************************************************* Google Play Services
     @Override // ----------------------- Called when the Google API Client is successfully connected

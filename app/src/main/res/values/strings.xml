@@ -13,6 +13,8 @@
     <string name="edit_icon">Edit Icon</string>
     <string name="pick_day">Pick a day of the week</string>
     <string name="person_logo">Person Logo</string>
+    <string name="icon">Icon on reminder list</string>
+    <string name="sms_icon">Sms icon</string>
 
     <!-- Tabs -->
     <string name="reminders">Reminders</string>
@@ -28,6 +30,7 @@
     <string name="cancel">Cancel</string>
     <string name="in">When you arrive</string>
     <string name="out">When you leave</string>
+    <string name="in_at">When you arrive at: </string>
     <string name="select_place">Select place</string>
     <string name="remind_me_to">Remind me to:</string>
     <string name="notes">Notes</string>

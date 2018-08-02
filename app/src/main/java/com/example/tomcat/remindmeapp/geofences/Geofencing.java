@@ -1,4 +1,4 @@
-package com.example.tomcat.remindmeapp.places;
+package com.example.tomcat.remindmeapp.geofences;
 
 import android.app.PendingIntent;
 import android.content.Context;
@@ -17,6 +17,7 @@ import com.google.android.gms.location.places.PlaceBuffer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Geofencing
@@ -24,9 +25,9 @@ import java.util.List;
 
 public class Geofencing implements ResultCallback {
 
-    public static final String TAG = Geofencing.class.getSimpleName();
-    private static final float GEOFENCE_RADIUS = 50; // meters
-    private static final long GEOFENCE_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
+    private static final String TAG = Geofencing.class.getSimpleName();
+    private static final float GEOFENCE_RADIUS = 40; // meters
+    private static final long GEOFENCE_TIMEOUT = TimeUnit.DAYS.toMillis(8); // 8 days - Geofences are restored by Job Schedule
 
 
     private List<Geofence> mGeofenceList;
@@ -44,8 +45,6 @@ public class Geofencing implements ResultCallback {
         mGoogleApiClient = client;
         mGeofencePendingIntent = null;
         mGeofenceList = new ArrayList<>();
-
-        Log.d("GeofTest", "Geofencing GEO: " );
     }
 
 
@@ -56,15 +55,14 @@ public class Geofencing implements ResultCallback {
      * @param places the PlaceBuffer result of the getPlaceById call
      */
     public void updateGeofencesList(PlaceBuffer places) {
-        Log.d("GeofTest", "places GEO: " + places.getCount());
-
         mGeofenceList = new ArrayList<>();
-        if (places == null || places.getCount() == 0) return;
+        if (places.getCount() == 0) return;
         for (Place place : places) {
             // Read the place information from the DB cursor
             String placeUID = place.getId();
             double placeLat = place.getLatLng().latitude;
             double placeLng = place.getLatLng().longitude;
+
             // Build a Geofence object
             Geofence geofence = new Geofence.Builder()
                     .setRequestId(placeUID)
@@ -74,7 +72,6 @@ public class Geofencing implements ResultCallback {
                     .build();
             // Add it to the list
             mGeofenceList.add(geofence);
-            //Log.d("GeofTest", "Geo: " + geofence.getRequestId());
         }
     }
 
@@ -135,9 +132,8 @@ public class Geofencing implements ResultCallback {
      */
     private GeofencingRequest getGeofencingRequest() {
         GeofencingRequest.Builder builder = new GeofencingRequest.Builder();
-        builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
+        //builder.setInitialTrigger(GeofencingRequest.INITIAL_TRIGGER_ENTER);
         builder.addGeofences(mGeofenceList);
-        Log.d("GeofTest", "Geo: " + builder);
         return builder.build();
     }
 
@@ -155,7 +151,14 @@ public class Geofencing implements ResultCallback {
         Intent intent = new Intent(mContext, GeofenceBroadcastReceiver.class);
         mGeofencePendingIntent = PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.
                 FLAG_UPDATE_CURRENT);
+
+        /*long futureInMillis = SystemClock.elapsedRealtime() + delay;
+        AlarmManager alarmManager = (AlarmManager)mContext.getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, mGeofencePendingIntent);*/
+
+
         return mGeofencePendingIntent;
+
     }
 
     @Override

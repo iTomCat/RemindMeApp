@@ -359,9 +359,9 @@ public class AppContentProvider extends ContentProvider{
                 null);
 
         assert cursor != null;
-        int ColumnInDB = cursor.getColumnIndex(PlacesContract.PlacesEntry.COLUMN_PLACE_NAME);
+        int columnInDB = cursor.getColumnIndex(PlacesContract.PlacesEntry.COLUMN_PLACE_NAME);
         cursor.moveToFirst(); // MOVE TO FIRST
-        String placeName = cursor.getString(ColumnInDB);
+        String placeName = cursor.getString(columnInDB);
         cursor.close();
 
         return placeName;

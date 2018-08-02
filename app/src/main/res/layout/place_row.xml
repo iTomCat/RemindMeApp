@@ -25,7 +25,7 @@
             android:layout_marginTop="8dp"
             android:text="@string/empty_text"
             android:textAlignment="viewStart"
-            android:textColor="@android:color/darker_gray"
+            android:textColor="@color/place_autocomplete_prediction_primary_text"
             android:textSize="33sp"
             card_view:layout_constraintBottom_toBottomOf="parent"
             card_view:layout_constraintEnd_toEndOf="parent"

@@ -53,7 +53,6 @@ public class Reminder implements Parcelable {
         this.reminderIDinDB = reminderIDinDB;
     }
 
-    //@SuppressWarnings("unused")
     public int getInOut() {
         return inOut;
     }

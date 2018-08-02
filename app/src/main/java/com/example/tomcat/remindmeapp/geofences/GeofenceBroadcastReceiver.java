@@ -1,116 +1,88 @@
-package com.example.tomcat.remindmeapp;
+package com.example.tomcat.remindmeapp.geofences;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.content.BroadcastReceiver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
-import android.support.v4.app.TaskStackBuilder;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.NotificationCompat;
 import android.telephony.SmsManager;
 import android.util.Log;
 
+import com.example.tomcat.remindmeapp.AddReminderActivity;
+import com.example.tomcat.remindmeapp.MainActivity;
+import com.example.tomcat.remindmeapp.R;
 import com.example.tomcat.remindmeapp.data.ActionsContract;
 import com.example.tomcat.remindmeapp.data.AppContentProvider;
 import com.example.tomcat.remindmeapp.data.RemindersContract;
 import com.google.android.gms.location.Geofence;
+import com.google.android.gms.location.GeofencingEvent;
 
-import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Random;
 
 /**
- * Created by tomas on 30.07.2018.
+ * BroadcastReceiver
  */
 
-public class TestingBroad {
-    Activity activity;
-    Context context;
+public class GeofenceBroadcastReceiver extends BroadcastReceiver {
+
+    public static final String TAG = GeofenceBroadcastReceiver.class.getSimpleName();
+
+    private Context context;
     private Cursor currentCursor;
     //String currID;
     private int numberOfGeofencies = -1;
-    ArrayList<String> geoList;
+    List<Geofence> geoList;
+    MediaPlayer mediaPlayer;
 
     private int geofenceTransition;
     private int currGeofencePos = 0;
-    int currentCursorPos = 0;
+    private int currentCursorPos = 0;
 
     private static final int PERMISSIONS_REQUEST_SEND_SMS = 116;
-
-    String testGeoID = "ChIJY2m4QCfMFkcRppUtdIZptFo";
-    String testGeoID1 = "ChIJqeqUZyfMFkcRyfn6mCOzkvo";  // Smak  Pizzy
-    //String testGeoID1 = "ChIJY2m4QCfMFkcRppUtdIZptFo1";
 
     enum S {START, ACTIVE, IN_OUT, SETTINGS, REMIND_OK, END}
     private S state = S.START;
 
 
-    public TestingBroad(Activity activity, Context context){
-        this.activity = activity;
+    @Override
+    public void onReceive(Context context, Intent intent) {
         this.context = context;
+        mediaPlayer = MediaPlayer.create(context, R.raw.gong);
 
-        // List<Geofence> aa = geofencingEvent.getTriggeringGeofences();
-        geoList  = new ArrayList<>();
-        geoList.add(testGeoID);
-        geoList.add(testGeoID1);  // Potem sprawdzić dla dwóch
-
-        /*for (String  geo : geoList) {
-            Log.d("RecPlace", "Loop " + geo);
-        }*/
-
-        numberOfGeofencies = geoList.size();
-
-        //currID = geoList.get(0);  //<<<<<<<<<<<<<< LOOPOWAc
-       // geofencePlace(numberOfGeofencies);
-
-        //TODO zrobić potem sprawdzanie dla każdego miejsca po koloei. Na end następne miejsce
-
-
-        //int transitionType = Geofence.GEOFENCE_TRANSITION_ENTER;
-        //CURRENT_STATE = transitionType;
-        geofenceTransition = Geofence.GEOFENCE_TRANSITION_EXIT; // pobierać z int geofenceTransition = geofencingEvent.getGeofenceTransition()
-
-        // ------------------------------------------------ Adding data from the place to the cursor
-        //currentCursor = cursorWithPlaceIDdata(currID);
-
-        //geofencePlace(currGeofencePos);
-        reminderState();
-
-
-
-        //if (currentCursor.getCount() > 0) reminderState(currentCursor);
-
-       /* //Cursor currentCursor = cursorWithPlaceIDdata("ChIJY2m4QCfMFkcRppUtdIZptFo1");
-        assert currentCursor != null;
-        int ColumnInDB = currentCursor.getColumnIndex(PlacesContract.PlacesEntry.COLUMN_PLACE_NAME);
-        currentCursor.moveToFirst(); // MOVE TO FIRST
-        Log.d("RecPlace", "currentCursor " + currentCursor.getCount());
-
-        if (currentCursor.getCount() > 0) {
-
-            String placeName = currentCursor.getString(ColumnInDB);
-            Log.d("RecPlace", "placeName " + placeName);
+        Log.i(TAG, "onReceive called");
+        // Get the Geofence Event from the Intent sent through
+        GeofencingEvent geofencingEvent = GeofencingEvent.fromIntent(intent);
+        if (geofencingEvent.hasError()) {
+            Log.e(TAG, String.format("Error code : %d", geofencingEvent.getErrorCode()));
+            return;
         }
 
-        currentCursor.close();*/
+        geoList = geofencingEvent.getTriggeringGeofences();
+        geofenceTransition = geofencingEvent.getGeofenceTransition();
 
-        //currentCursor.close();
-
+        List<Geofence> geoList = geofencingEvent.getTriggeringGeofences();
+        numberOfGeofencies = geoList.size();
+        reminderState();
     }
 
     private String geofencePlace(int currNum){
-        Log.d("RecPlace", "currGeofencePos cxxxxxxxxxxxxxxxxxxxxxxxxx> " + currNum);
         if (numberOfGeofencies > 0 && currNum < numberOfGeofencies) {
-            String currID = geoList.get(currNum);  //<<<<<<<<<<<<<< LOOPOWAc
-            Log.d("RecPlace", "currID >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + currID);
-            return currID;
+            return geoList.get(currNum).getRequestId();
         }else{
             return null;
         }
@@ -120,33 +92,26 @@ public class TestingBroad {
     // ********************************************************************************************* Check state
     private void reminderState(){
         switch (state) {
-            case START: { //---------------------------------------- Is the place is in the reminder
+            case START: { //------------------------------------------------------------------------ Is the place is in the reminder
                 String currID = geofencePlace(currGeofencePos);
-                Log.d("TwoPlaces", "INIT..................currentCursorPos  " + currentCursorPos);
                 currentCursor = cursorWithPlaceIDdata(currID, currentCursorPos);
 
-                Log.d("TwoPlaces", "INIT............................Pos  " + currentCursor.getPosition());
-
-                //state = (currentCursor.getCount() > 0) ? S.ACTIVE : S.END;
-                state = (currentCursor.getPosition() >= 0 && currentCursor.getPosition()< currentCursor.getCount()) ? S.ACTIVE : S.END;
+                state = (currentCursor.getPosition() >= 0 && currentCursor.getPosition()< currentCursor.getCount())
+                        ? S.ACTIVE : S.END;
                 nextStep();
                 break;
             }
-            case ACTIVE: { //---------------------------------------------------------------- ACTIVE
+            case ACTIVE: { //----------------------------------------------------------------------- ACTIVE
                 int columnActive = currentCursor.getColumnIndex
                         (RemindersContract.RemindersEntry.COLUMNM_ACTIVE);
-                //currentCursor.moveToFirst();
                 int active = currentCursor.getInt(columnActive);
-
-                Log.d("RecPlace", "active " + active);
 
                 state = (active == AddReminderActivity.REMIND_IS_ACTIVE) ? S.IN_OUT : S.END;
                 nextStep();
-
                 break;
             }
 
-            case IN_OUT: { //---------------------------------------------------------------- IN OUT
+            case IN_OUT: { //----------------------------------------------------------------------- IN OR OUT
                 int columnINOut = currentCursor.getColumnIndex
                         (RemindersContract.RemindersEntry.COLUMN_IN_OR_OUT);
                 int inOrOut = currentCursor.getInt(columnINOut);
@@ -157,22 +122,19 @@ public class TestingBroad {
                 break;
             }
 
-            case SETTINGS: { //------------------------------------------------------------ SETTINGS
+            case SETTINGS: { //--------------------------------------------------------------------- SETTINGS
                 int columnINOut = currentCursor.getColumnIndex
                         (RemindersContract.RemindersEntry.COLUMN_REMIND_SETTINGS);
                 int settings = currentCursor.getInt(columnINOut);
 
                 if((settings & AddReminderActivity.REMIND_ONCE)  > 0){
-                    Log.d("RecPlace", "once ");
                     writeAsInactive();
                     state = S.REMIND_OK ;
 
                 }else if ((settings & AddReminderActivity.REMIND_ALWAYS) > 0){
-                    Log.d("RecPlace", "Always" );
                     state = S.REMIND_OK ;
 
                 }else if ((settings & AddReminderActivity.REMIND_ON_SELECTED_DAYS) > 0){
-                    Log.d("RecPlace", "WEEK DAYS " + checkDayWeek(settings));
                     state = (checkDayWeek(settings)) ? S.REMIND_OK : S.END;
                 }
 
@@ -180,21 +142,21 @@ public class TestingBroad {
                 break;
             }
 
-            case REMIND_OK: { //----------------------------------------------------------------- OK
+            case REMIND_OK: { //-------------------------------------------------------------------- OK (all reminder alerts met)
 
                 // --------------------------------------------------------------  SEND NOTIFICATION
                 int columnName = currentCursor.getColumnIndex
                         (RemindersContract.RemindersEntry.COLUMN_NAME);
                 String title = currentCursor.getString(columnName);
-                String place = AppContentProvider.getPlaceNameBasedGoogleID(activity,
+                String place = AppContentProvider.getPlaceNameBasedGoogleID(context,
                         geofencePlace(currGeofencePos));
                 String notifiEnd = null;
                 if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-                    notifiEnd = activity.getString(R.string.notification_in);
-                    } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
-                    notifiEnd = activity.getString(R.string.notification_out);
+                    notifiEnd = context.getString(R.string.notification_in);
+                } else if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_EXIT) {
+                    notifiEnd = context.getString(R.string.notification_out);
                 }
-                String descr = activity.getString(R.string.notification) + " " + notifiEnd + " " + place;
+                String descr = context.getString(R.string.notification) + " " + notifiEnd + " " + place;
                 sendNotification(context, title, descr);
 
                 // ------------------------------------------------------------------------ SEND SMS
@@ -206,25 +168,29 @@ public class TestingBroad {
                     int columnSMSid = currentCursor.getColumnIndex
                             (RemindersContract.RemindersEntry.COLUMN_REMIND_SMS_ID);
                     int smsID = currentCursor.getInt(columnSMSid);
-                    sendSMS(smsID);
+                    sendSMS(context, smsID);
                 }
-                    //TODO Send Sms
 
-                //Log.d("RecPlace", "REMIND OK SEND NOTIFICATION! " + title);
-                Log.d("TwoPlaces", "REMIND OK SEND NOTIFICATION! " + title + " Pos: " + currentCursorPos);
-
-                checkForAnotherReminderInThisPlace();
-                //nextGeofence();
+                // ---------------------------------------------------------------------- Play Sound
+                mediaPlayer.start();
+                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    public void onCompletion(MediaPlayer mp) {
+                        mediaPlayer.release();
+                    }
+                });
+                checkForAnotherReminderForThisPlace();
                 break;
             }
 
-            case END: { //--------------------- Conditions have not been met, reminder is not active
-                // TODO tu sprawdzać czy są kolejne miejsca w geoList
-                Log.d("TwoPlaces", "END ");
-                nextGeofence();
+            case END: { //-------------------------------------------------------------------------- Conditions have not been met, reminder is not active
+                if (currentCursorPos < numberOfGeofencies){
+                    checkForAnotherReminderForThisPlace();
+                }else{
+                    checkNextGeofence();
+                }
+
                 break;
             }
-
             default: {
             }
 
@@ -233,22 +199,19 @@ public class TestingBroad {
     }
 
 
-    private void checkForAnotherReminderInThisPlace(){
-            currentCursorPos++;
-            state = S.START;
-            Log.d("TwoPlaces", "SEND STATE " + currentCursorPos);
-            reminderState();
+    private void checkForAnotherReminderForThisPlace(){
+        currentCursorPos++;
+        state = S.START;
+        reminderState();
     }
 
 
-    private void nextGeofence(){
+    private void checkNextGeofence(){
         currGeofencePos++;
-        Log.d("RecPlace", "currGeofencePos............. " + currGeofencePos);
         if( currGeofencePos <= numberOfGeofencies){ //
             currentCursorPos = 0;
             state = S.START;
             reminderState();
-            Log.d("RecPlace", "START................................... " + currGeofencePos);
         }
     }
 
@@ -272,39 +235,25 @@ public class TestingBroad {
     }
 
 
+    // --------------------------------------------------------- Cursor with data based on Google Id
     private Cursor cursorWithPlaceIDdata(String currPlaceID, int currPos){
         Uri uri = RemindersContract.RemindersEntry.CONTENT_URI;
         uri = uri.buildUpon().appendPath(currPlaceID).build();
 
-
-        Cursor cursor = activity.getContentResolver().query(uri,
+        Cursor cursor = context.getContentResolver().query(uri,
                 null,
                 RemindersContract.RemindersEntry.COLUMN_PLACES_GOOGLE_ID,
                 null,
                 null);
 
+        assert cursor != null;
         cursor.moveToPosition(currPos);
 
-        Log.d("TwoPlaces", "Cursor count " + cursor.getCount());
         return cursor;
     }
 
 
-    /*private Cursor cursorWithPlaceIDdata(String currPlaceID){
-        Uri uri = RemindersContract.RemindersEntry.CONTENT_URI;
-        uri = uri.buildUpon().appendPath(currPlaceID).build();
 
-
-        Cursor cursor = activity.getContentResolver().query(uri,
-                null,
-                RemindersContract.RemindersEntry.COLUMN_PLACES_GOOGLE_ID,
-                null,
-                null);
-
-        Log.d("TwoPlaces", "Cursor " + cursor.getCount());
-        return cursor;
-    }
-*/
     private void writeAsInactive(){ // if Remind me only Once
         ContentValues contentValues = new ContentValues();
         contentValues.put(RemindersContract.RemindersEntry.COLUMNM_ACTIVE,
@@ -322,58 +271,64 @@ public class TestingBroad {
     }
 
     // ********************************************************************************************* Notification
-    private void sendNotification(Context context, String title, String place) {
-        // Create an explicit content Intent that starts the main Activity.
-        Intent notificationIntent = new Intent(context, MainActivity.class);
-
-        // Construct a task stack.
-        TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-
-        // Add the main Activity to the task stack as the parent.
-        stackBuilder.addParentStack(MainActivity.class);
-
-        // Push the content Intent onto the stack.
-        stackBuilder.addNextIntent(notificationIntent);
-
-        // Get a PendingIntent containing the entire back stack.
-        PendingIntent notificationPendingIntent =
-                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
-
-        // Get a notification builder
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
-
-        builder.setSmallIcon(R.drawable.ic_remind)
-                .setLargeIcon(BitmapFactory.decodeResource(context.getResources(),
-                        R.drawable.ic_remind_circle))
-                .setContentTitle(title);
-
-        // Continue building the notification
-        builder.setContentText(place);
-        builder.setContentIntent(notificationPendingIntent);
-
-        // Dismiss notification once the user touches it.
-        builder.setAutoCancel(true);
-
-        // Get an instance of the Notification manager
-        NotificationManager mNotificationManager =
+    private void sendNotification(Context context, String title, String message) {
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent,
+                PendingIntent.FLAG_ONE_SHOT);
+        //Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+        int icon = Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ? R.drawable.ic_remind : R.drawable.ic_remind_circle;
+        NotificationManager notificationManager =
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
+        //int m = (int) ((new Date().getTime() / 1000L) % Integer.MAX_VALUE);
         Random random = new Random();
         int mNotificationId = random.nextInt(9999 - 1000) + 1000;
 
-        // Issue the notification
-        mNotificationManager.notify(mNotificationId, builder.build());
+
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelId = "default";
+            NotificationChannel channel = new NotificationChannel(channelId, title, NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setDescription(message);
+            channel.enableLights(true);
+            channel.setLightColor(Color.BLUE);
+            //channel.setSound(defaultSoundUri, null);
+            channel.setShowBadge(true);
+            assert notificationManager != null;
+            notificationManager.createNotificationChannel(channel);
+            Notification notification = new Notification.Builder(context, channelId)
+                    .setContentTitle(title)
+                    .setContentText(message)
+                    .setSmallIcon(icon)
+                    .setAutoCancel(true)
+                    .setContentIntent(pendingIntent)
+                    .build();
+            notificationManager.notify(mNotificationId, notification);
+        } else {
+            @SuppressWarnings("deprecation")
+            NotificationCompat.Builder notificationBuilder =
+                    (NotificationCompat.Builder) new NotificationCompat.Builder(context)
+                    .setSmallIcon(icon)
+                    .setContentTitle(title)
+                    .setContentText(message)
+                    .setAutoCancel(true)
+                    //.setSound(defaultSoundUri)
+                    .setContentIntent(pendingIntent)
+                    .setLights(Color.BLUE, 3000, 3000);
+
+
+            assert notificationManager != null;
+            notificationManager.notify(mNotificationId, notificationBuilder.build());
+        }
     }
 
     // ********************************************************************************************* Send SMS
-    private void sendSMS(int smsID){
-
+    public static void sendSMS(Context context, int smsID){
         String id = String.valueOf(smsID);
-
         Uri uri = ActionsContract.ActionsEntry.CONTENT_URI;
         uri = uri.buildUpon().appendPath(id).build();
 
-        Cursor cursor = activity.getContentResolver().query(uri,
+        Cursor cursor = context.getContentResolver().query(uri,
                 null,
                 ActionsContract.ActionsEntry._ID,
                 null,
@@ -387,15 +342,14 @@ public class TestingBroad {
         String message = cursor.getString(columnmessage);
         cursor.close();
 
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                activity.checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-            activity.requestPermissions(new String[]{Manifest.permission.SEND_SMS}, PERMISSIONS_REQUEST_SEND_SMS);
+                context.checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions((Activity) context, new String[]{Manifest.permission.SEND_SMS}, PERMISSIONS_REQUEST_SEND_SMS);
         } else {
             // Android version is lesser than 6.0 or the permission is already granted
             SmsManager sms = SmsManager.getDefault();
             sms.sendTextMessage(phoneNumber, null, message, null, null);
         }
-
-        Log.d("SmsTest", "SMS " + phoneNumber );
     }
 }
