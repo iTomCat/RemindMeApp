@@ -67,7 +67,6 @@ public class GeoSyncJob extends Job {
         new JobRequest.Builder(GeoSyncJob.TAG)
                 .setPeriodic(TimeUnit.DAYS.toMillis(3), TimeUnit.DAYS.toMillis(1))
                 //.setPeriodic(TimeUnit.SECONDS.toMillis(60), TimeUnit.SECONDS.toMillis(30)) // for tests
-                .setUpdateCurrent(true)
                 .setRequiredNetworkType(JobRequest.NetworkType.CONNECTED)
                 .build()
                 .schedule();

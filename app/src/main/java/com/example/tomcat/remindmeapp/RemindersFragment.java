@@ -1,5 +1,7 @@
 package com.example.tomcat.remindmeapp;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
@@ -19,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.tomcat.remindmeapp.data.ActionsContract;
 import com.example.tomcat.remindmeapp.data.AppContentProvider;
@@ -86,25 +89,6 @@ public class RemindersFragment extends Fragment implements
         mRecyclerView.setLayoutManager(layoutManager);
 
 
-       /* new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
-            @Override
-            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
-                return false;
-            }
-
-            @Override
-            public boolean isLongPressDragEnabled() {
-                return super.isLongPressDragEnabled();
-            }
-
-            // Called when a user swipes left or right on a ViewHolder
-            @Override
-            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
-                // Here is where you'll implement swipe to delete
-            }
-        }).attachToRecyclerView(mRecyclerView);*/
-
-
         return view;
     }
 
@@ -115,6 +99,7 @@ public class RemindersFragment extends Fragment implements
         if(logngClick){ // ------------------------------------------------------------------------- Long Click - DELETE REMINDER
             deleteReminder(position);
         }else{ // ---------------------------------------------------------------------------------- Click - EDIT REMINDER
+
             Reminder selectedReminder =  mReminderList.get(position);
 
             Intent intent = new Intent(getActivity(), AddReminderActivity.class);
@@ -203,6 +188,16 @@ public class RemindersFragment extends Fragment implements
         loadFromDB(REMINDERS_ID_LOADER);
     }
 
+    // ********************************************************************************************* Update Widget
+    private void setDataToWidget(){
+        final AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(getActivity());
+        final int[] appWidgetIds = appWidgetManager.getAppWidgetIds
+                (new ComponentName(getActivity(), RemindersWidget.class));
+
+            RemindersWidget.updateIngriedentsWidgets(getContext(), appWidgetManager, appWidgetIds,
+                    mReminderList);
+    }
+
 
     // *********************************************************************************************
     // ********************************************************************************************* Start Load
@@ -251,6 +246,7 @@ public class RemindersFragment extends Fragment implements
                 Cursor mActionsData = (Cursor) loadedData;
                 mActionsList = AppContentProvider.actionsListFromCursor(mActionsData);
                 mReminderList = AppContentProvider.remindersListFromCursor(mRemindersData);
+                setDataToWidget();
 
                 adapter.setRemindersData(mReminderList);
                 mRecyclerView.setAdapter(adapter);

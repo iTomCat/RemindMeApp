@@ -93,13 +93,14 @@
     <string name="notification_out">go out from</string>
 
 
-
-
-
-
-
     <!-- No Used -->
     <string name="act_rem">Active reminders</string>
     <string name="arch_rem">Archived reminders</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+
+
+    <!-- No Used -->
+    <string name="reminders_was_added">The reminders has been put into the widget</string>
 
 </resources>

@@ -140,18 +140,10 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
 
         // ----------------------------------------------------------------------------------------- ACTIONS
-        if((mRemindersData.get(position).getAction() > 0)) { // ---------------------------- Send SMS
+        if((mRemindersData.get(position).getAction() > 0)) { // --------------------------- Send SMS
             holder.smsIcon.setVisibility(View.VISIBLE);
         }
-
-        /*}else if ((settings & AddReminderActivity.REMIND_ALWAYS) > 0) { // ---------------- no Action
-                   }*/
-
-
         holder.actionTxt.setText(currSettings);
-
-
-
     }
 
 
