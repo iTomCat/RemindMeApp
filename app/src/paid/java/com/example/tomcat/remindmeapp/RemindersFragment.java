@@ -21,7 +21,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.tomcat.remindmeapp.data.ActionsContract;
 import com.example.tomcat.remindmeapp.data.AppContentProvider;
@@ -29,6 +28,7 @@ import com.example.tomcat.remindmeapp.data.PlacesContract;
 import com.example.tomcat.remindmeapp.data.RemindersContract;
 import com.example.tomcat.remindmeapp.models.Actions;
 import com.example.tomcat.remindmeapp.models.Reminder;
+import com.example.tomcat.remindmeapp.widget.RemindersWidget;
 
 import java.util.List;
 import butterknife.ButterKnife;

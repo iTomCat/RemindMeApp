@@ -1,4 +1,4 @@
-package com.example.tomcat.remindmeapp;
+package com.example.tomcat.remindmeapp.widget;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -8,6 +8,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.widget.RemoteViews;
 
+import com.example.tomcat.remindmeapp.ListWidgetService;
+import com.example.tomcat.remindmeapp.MainActivity;
+import com.example.tomcat.remindmeapp.R;
 import com.example.tomcat.remindmeapp.models.Reminder;
 
 import java.util.List;

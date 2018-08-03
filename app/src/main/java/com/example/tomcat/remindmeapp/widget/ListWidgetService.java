@@ -1,15 +1,15 @@
-package com.example.tomcat.remindmeapp;
+package com.example.tomcat.remindmeapp.widget;
 
 import android.content.Context;
 import android.content.Intent;
 import android.widget.RemoteViews;
 import android.widget.RemoteViewsService;
 
+import com.example.tomcat.remindmeapp.AddReminderActivity;
+import com.example.tomcat.remindmeapp.R;
 import com.example.tomcat.remindmeapp.models.Reminder;
-import com.example.tomcat.remindmeapp.widget.RemindersWidget;
 
 import java.util.List;
-
 
 
 public class ListWidgetService extends RemoteViewsService {
@@ -24,7 +24,7 @@ public class ListWidgetService extends RemoteViewsService {
     }
 
     // ********************************************************************************************* RemoteViewFactory
-    class ListRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
+    class ListRemoteViewsFactory implements RemoteViewsFactory {
         Context mContext;
 
         ListRemoteViewsFactory(Context applicationContext) {
