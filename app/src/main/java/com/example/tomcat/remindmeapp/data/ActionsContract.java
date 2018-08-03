@@ -20,7 +20,7 @@ public class ActionsContract {
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_ACTIONS).build();
 
         // -------------------------------------------------------------------------------- Conatsns
-        public static final String TABLE_NAME = "actions_table";
+        static final String TABLE_NAME = "actions_table";
 
         //public static final String COLUMN_ID = "remind_id";
         public static final String COLUMN_SMS_CONTACT = "sms_contact";

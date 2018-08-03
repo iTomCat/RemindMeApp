@@ -54,6 +54,7 @@ public class DialogSelectContact extends DialogFragment{
         {
             int width = ViewGroup.LayoutParams.MATCH_PARENT;
             int height = ViewGroup.LayoutParams.MATCH_PARENT;
+            assert dialog.getWindow() != null;
             dialog.getWindow().setLayout(width, height);
         }
     }

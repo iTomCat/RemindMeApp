@@ -58,7 +58,6 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
     enum S {START, ACTIVE, IN_OUT, SETTINGS, REMIND_OK, END}
     private S state = S.START;
 
-
     @Override
     public void onReceive(Context context, Intent intent) {
         this.context = context;
@@ -87,7 +86,6 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
             return null;
         }
     }
-
 
     // ********************************************************************************************* Check state
     private void reminderState(){
@@ -198,13 +196,11 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         }
     }
 
-
     private void checkForAnotherReminderForThisPlace(){
         currentCursorPos++;
         state = S.START;
         reminderState();
     }
-
 
     private void checkNextGeofence(){
         currGeofencePos++;
@@ -219,7 +215,6 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         reminderState();
     }
 
-
     private boolean checkDayWeek(int selectedDay){
         boolean dayIsMarked;
 
@@ -233,7 +228,6 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         dayIsMarked = (currDay & selectedDay) > 0;
         return dayIsMarked;
     }
-
 
     // --------------------------------------------------------- Cursor with data based on Google Id
     private Cursor cursorWithPlaceIDdata(String currPlaceID, int currPos){
@@ -251,8 +245,6 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
 
         return cursor;
     }
-
-
 
     private void writeAsInactive(){ // if Remind me only Once
         ContentValues contentValues = new ContentValues();
@@ -341,7 +333,6 @@ public class GeofenceBroadcastReceiver extends BroadcastReceiver {
         String phoneNumber = cursor.getString(columnNumber);
         String message = cursor.getString(columnmessage);
         cursor.close();
-
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
                 context.checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {

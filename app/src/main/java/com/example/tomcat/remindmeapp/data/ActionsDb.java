@@ -13,7 +13,7 @@ public class ActionsDb extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
 
     // --------------------------------------------------------------------------------- Constructor
-    public ActionsDb(Context context) {
+    ActionsDb(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 

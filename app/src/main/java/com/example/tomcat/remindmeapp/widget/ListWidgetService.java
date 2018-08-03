@@ -16,7 +16,6 @@ public class ListWidgetService extends RemoteViewsService {
 
     List<Reminder> mReminderList;
 
-
     @Override
     public RemoteViewsFactory onGetViewFactory(Intent intent) {
 

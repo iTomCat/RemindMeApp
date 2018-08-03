@@ -20,7 +20,6 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.view.animation.Animation;
 import android.view.View;
 import android.view.animation.ScaleAnimation;
@@ -75,7 +74,6 @@ public class AddReminderActivity extends AppCompatActivity {
     public final static int SUN = 512;
     public final static int []WEEK_DAYS = {MON, TUE, WED, THU, FRI, SAT, SUN};
 
-    @SuppressWarnings("unused")
     public final static int REMIND_IS_INACTIVE = 0;
     public final static int REMIND_IS_ACTIVE = 1;
 
@@ -155,8 +153,6 @@ public class AddReminderActivity extends AppCompatActivity {
                     smsContact = action.getSmsContact();
                     smsNumber = action.getSmsNumber();
                     smsMessage = action.getSmsMessage();
-
-                    Log.d("SmsEdit", "In " + actionID + "   " + selecterReminder.getSmsID());
                 }
                 notesTxt.setText(selecterReminder.getNotes());  // --------------------------- NOTES
 
@@ -253,7 +249,6 @@ public class AddReminderActivity extends AppCompatActivity {
                 Uri uri = getContentResolver().insert(ActionsContract.ActionsEntry.CONTENT_URI, contentValues);
                 assert uri != null;
                 smsID = (Long.valueOf(uri.getLastPathSegment())).intValue(); // Get action sms ID
-                Log.d("SMSTAg", "smsID " + smsID);
             }
 
             // --------------------------------------------------------------- Edit Remind > ADD SMS
@@ -262,7 +257,6 @@ public class AddReminderActivity extends AppCompatActivity {
                 Uri uri = getContentResolver().insert(ActionsContract.ActionsEntry.CONTENT_URI, contentValues);
                 assert uri != null;
                 smsID = (Long.valueOf(uri.getLastPathSegment())).intValue(); // Get action sms ID
-                Log.d("SMSTAg", "Edit Reminder No SMS ON ENTER " + smsID);
             }
 
             // -------------------------------------------------------------- Edit Remind > EDIT SMS
@@ -271,10 +265,7 @@ public class AddReminderActivity extends AppCompatActivity {
                 Uri uriEdit = ActionsContract.ActionsEntry.CONTENT_URI;
                 uriEdit = uriEdit.buildUpon().appendPath(stringId).build();
 
-
                 smsID = (Long.valueOf(uriEdit.getLastPathSegment())).intValue(); // Get action sms ID
-                Log.d("SMSTAg", "Edit Reminder SMS ON ENTER____" + stringId + "  smsID " + smsID);
-
                 getContentResolver().update(uriEdit, contentValues, null, null);
             }
         }
@@ -333,7 +324,6 @@ public class AddReminderActivity extends AppCompatActivity {
         Bundle args = new Bundle();
         args.putBoolean(REMINDER_PLACES, true);
         placesFragmentFragment.setArguments(args);
-
 
             fragmentManager.beginTransaction()
                     .add(R.id.places_fragment, placesFragmentFragment)

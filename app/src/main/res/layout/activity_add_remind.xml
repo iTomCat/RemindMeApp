@@ -57,7 +57,8 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/circle" />
+                app:srcCompat="@drawable/circle"
+                android:nextFocusForward="@+id/in_out_btn" />
 
             <ImageView
                 android:id="@+id/pointer"
@@ -112,7 +113,8 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/select_place_tv" />
+                app:layout_constraintTop_toBottomOf="@+id/select_place_tv"
+                android:nextFocusForward="@+id/text_input_txt"/>
 
 
             <com.example.tomcat.remindmeapp.utilitis.TextViewRobotoLight
@@ -139,7 +141,8 @@
                 app:hintTextAppearance="@style/MyInputAppearance"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/remind_me_tv">
+                app:layout_constraintTop_toBottomOf="@+id/remind_me_tv"
+                android:nextFocusForward="@+id/reminder_settings">
 
                 <android.support.design.widget.TextInputEditText
                     android:id="@+id/text_input_txt"
@@ -160,7 +163,8 @@
                 android:layout_marginStart="32dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/text_input_lay" />
+                app:layout_constraintTop_toBottomOf="@+id/text_input_lay"
+                android:nextFocusForward="@+id/reminder_actions"/>
 
 
             <include
@@ -173,7 +177,8 @@
                 android:layout_marginTop="16dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/reminder_settings" />
+                app:layout_constraintTop_toBottomOf="@+id/reminder_settings"
+                android:nextFocusForward="@+id/notes_input"/>
 
 
             <EditText

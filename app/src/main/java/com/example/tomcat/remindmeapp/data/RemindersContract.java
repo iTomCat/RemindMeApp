@@ -21,7 +21,7 @@ public class RemindersContract {
                 BASE_CONTENT_URI.buildUpon().appendPath(PATH_REMINDERS).build();
 
         // -------------------------------------------------------------------------------- Conatsns
-        public static final String TABLE_NAME = "reminderds_table";
+        static final String TABLE_NAME = "reminderds_table";
 
         //public static final String COLUMN_ID = "remind_id";
         public static final String COLUMN_IN_OR_OUT = "in_or_out";

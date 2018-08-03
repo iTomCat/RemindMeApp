@@ -13,7 +13,6 @@ public class Places implements Parcelable {
     private String placeName;
 
     public Places(){
-
     }
 
     private Places(Parcel in) {

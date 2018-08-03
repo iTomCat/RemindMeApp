@@ -45,7 +45,6 @@ public class MainActivity extends AppCompatActivity implements
     @BindView(R.id.tabs) TabLayout tabLayout;
     @BindView(R.id.google_privacy) LinearLayout privacy;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +53,6 @@ public class MainActivity extends AppCompatActivity implements
 
         robotoLightFont = Typeface.createFromAsset(this.getAssets(), "fonts/Roboto-Light.ttf");
         robotoFont = Typeface.createFromAsset(this.getAssets(), "fonts/Roboto-Regular.ttf");
-
 
         appBarLayout.addOnOffsetChangedListener(this);
 
@@ -67,9 +65,6 @@ public class MainActivity extends AppCompatActivity implements
 
         GeoSyncJob.scheduleJob();
     }
-
-
-
 
     // ********************************************************************************************* Fab Button
     public void setActivityListener(FabButtonListenerFromActivity activityListener) {

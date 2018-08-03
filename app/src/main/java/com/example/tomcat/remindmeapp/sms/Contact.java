@@ -11,7 +11,7 @@ public class Contact {
     Contact(String id, String name) {
         this.id = id;
         this.name = name;
-        this.numbers = new ArrayList<ContactPhone>();
+        this.numbers = new ArrayList<>();
     }
 
     @Override

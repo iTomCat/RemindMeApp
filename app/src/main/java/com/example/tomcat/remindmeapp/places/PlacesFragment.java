@@ -88,7 +88,6 @@ public class PlacesFragment extends Fragment implements
     private Unbinder unbinder;
     private boolean ifEnterFromAddReminder = false;
     private boolean placeWasAdded = false;
-    //Cursor mRemindersData = null;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -470,7 +469,6 @@ public class PlacesFragment extends Fragment implements
     public void onLoaderReset(Loader loader) {
         adapter.refresh();
     }
-
 
 
     // ********************************************************************************************* Google Play Services

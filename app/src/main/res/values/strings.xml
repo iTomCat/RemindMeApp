@@ -104,6 +104,10 @@
     <string name="interstitial_ad_unit_id">ca-app-pub-3940256099942544/1033173712</string>
 
 
+    <!--Google Api Key -->
+    <string name="api_key"> ... </string>
+
+
     <!-- No Used -->
     <string name="reminders_was_added">The reminders has been put into the widget</string>
 

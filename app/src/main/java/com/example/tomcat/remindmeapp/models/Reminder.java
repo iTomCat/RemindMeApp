@@ -74,6 +74,7 @@ public class Reminder implements Parcelable {
         this.name = name;
     }
 
+    @SuppressWarnings("unused")
     public int getActive() {
         return active;
     }

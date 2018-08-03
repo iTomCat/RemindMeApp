@@ -9,7 +9,6 @@ import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -22,11 +21,6 @@ import com.example.tomcat.remindmeapp.R;
 
 public class DialogPlaceName extends DialogFragment {
     private boolean placeExisted;
-
-
-    //public DialogInterface.OnDismissListener onDismissSmsListener;
-
-    //Button selectContact;
     TextInputLayout inputTxtLay;
     TextInputEditText inputTxt;
 
@@ -98,11 +92,7 @@ public class DialogPlaceName extends DialogFragment {
             @Override
             public void onClick(View v) {
                 if (inputTxt.getText().toString().isEmpty()) {
-
-
                         inputTxtLay.setError(getString(R.string.error_place_name));
-
-
                 } else {
                     inputTxtLay.setError(null);
                     String placeName = inputTxt.getText().toString();

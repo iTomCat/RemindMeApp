@@ -45,7 +45,7 @@ public class RemindersFragment extends Fragment implements
         ReminderAdapter.ReminderAdapterOnClickHandler,
         LoaderManager.LoaderCallbacks{
 
-    public ReminderAdapter.ReminderAdapterOnClickHandler mClickHandler = this;
+    private ReminderAdapter.ReminderAdapterOnClickHandler mClickHandler = this;
     private PublisherInterstitialAd mPublisherInterstitialAd = null;
     private boolean showAdv = true;
 

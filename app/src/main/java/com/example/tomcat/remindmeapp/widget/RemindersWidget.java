@@ -37,7 +37,6 @@ public class RemindersWidget extends AppWidgetProvider {
 
     public static void updateIngriedentsWidgets(Context context, AppWidgetManager appWidgetManager,
                                                 int[] appWidgetIds,List<Reminder> reminderList) {
-
         mReminderList = reminderList;
 
         for (int appWidgetId : appWidgetIds) {

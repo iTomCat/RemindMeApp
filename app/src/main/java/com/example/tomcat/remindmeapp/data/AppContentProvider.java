@@ -95,7 +95,6 @@ public class AppContentProvider extends ContentProvider{
         Cursor retCursor;
         switch (match) {
             case REMINDERS:
-                //final SQLiteDatabase dbRem = remindersDb.getReadableDatabase();
                 retCursor = dbRem.query(RemindersContract.RemindersEntry.TABLE_NAME,
                         projection,
                         selection,
@@ -106,7 +105,6 @@ public class AppContentProvider extends ContentProvider{
                 break;
 
             case REMINDER_WITH_ID:
-                //final SQLiteDatabase dbRem2 = remindersDb.getReadableDatabase();
                 String id = uri.getPathSegments().get(1);
                 String mSelection = selection + "=?";
 
@@ -121,7 +119,6 @@ public class AppContentProvider extends ContentProvider{
                 break;
 
             case PLACES:
-                //final SQLiteDatabase dbPlaces = placesDb.getReadableDatabase();
                 retCursor = dbPlaces.query(PlacesContract.PlacesEntry.TABLE_NAME,
                         projection,
                         selection,
@@ -132,7 +129,6 @@ public class AppContentProvider extends ContentProvider{
                 break;
 
             case PLACES_WITH_ID:
-                //final SQLiteDatabase dbPlaces2 = placesDb.getReadableDatabase();
                 String idPalce = uri.getPathSegments().get(1);
                 String mSelectionPlace = selection + "=?";
                 String[] mSelectionArgsPlace = new String[] {idPalce};
@@ -146,7 +142,6 @@ public class AppContentProvider extends ContentProvider{
                 break;
 
             case ACTIONS:
-              //  final SQLiteDatabase dbActions = actionsDb.getReadableDatabase();
                 retCursor = dbActions.query(ActionsContract.ActionsEntry.TABLE_NAME,
                         projection,
                         selection,
@@ -157,7 +152,6 @@ public class AppContentProvider extends ContentProvider{
                 break;
 
             case ACTIONS_WITH_ID:
-                //final SQLiteDatabase dbActions2 = actionsDb.getReadableDatabase();
                 String idAction = uri.getPathSegments().get(1);
                 String mActionSelection = selection + "=?";
                 String[] mActionSelectionArgs = new String[] {idAction};
@@ -228,8 +222,6 @@ public class AppContentProvider extends ContentProvider{
                 long id_actions = dbActions.insert(
                         ActionsContract.ActionsEntry.TABLE_NAME, null, contentValues);
                 if ( id_actions > 0 ) {
-                    /*returnUri = ContentUris.withAppendedId(
-                            PlacesContract.PlacesEntry.CONTENT_URI, id_actions);*/
                     returnUri = ContentUris.withAppendedId(
                             ActionsContract.ActionsEntry.CONTENT_URI, id_actions);
                 } else {

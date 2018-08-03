@@ -1,13 +1,11 @@
 package com.example.tomcat.remindmeapp.places;
 
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import com.example.tomcat.remindmeapp.R;
 import com.example.tomcat.remindmeapp.models.Places;
-
 import java.util.List;
 
 import butterknife.BindView;
@@ -56,7 +54,6 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.ViewHolder
             mClickHandler.onClick(adapterPosition, false);
         }
 
-
         @Override
         public boolean onLongClick(View view) {
             //int adapterPosition = getAdapterPosition();
@@ -65,7 +62,6 @@ public class PlacesAdapter extends RecyclerView.Adapter<PlacesAdapter.ViewHolder
             return false;
         }
     }
-
 
     @Override
     public void onBindViewHolder(PlacesAdapter.ViewHolder holder, int position) {

@@ -35,7 +35,7 @@ import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
 /**
- * Fragment with Active RemindersFragment - Reminder List
+ * Fragment with Active RemindersFragment - Reminder List - Paid Version
  */
 
 public class RemindersFragment extends Fragment implements

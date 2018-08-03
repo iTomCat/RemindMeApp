@@ -35,18 +35,12 @@ public class Geofencing implements ResultCallback {
     private GoogleApiClient mGoogleApiClient;
     private Context mContext;
 
-    //TODO use JOB SCHEDULER or NEVER _EXPIRE
-
-    //refreshPlacesData();   >> on connected i on activity result
-    //https://github.com/fjoglar/android-dev-challenge/blob/master/articles/lesson-11-background-tasks.md#job-scheduler
-
     public Geofencing(Context context, GoogleApiClient client) {
         mContext = context;
         mGoogleApiClient = client;
         mGeofencePendingIntent = null;
         mGeofenceList = new ArrayList<>();
     }
-
 
     /***
      * Updates the local ArrayList of Geofences using data from the passed in list
@@ -108,7 +102,7 @@ public class Geofencing implements ResultCallback {
      * registering the Geofences in the first place
      * Triggers {@link #onResult} when the geofences have been unregistered successfully
      */
-    public void unRegisterAllGeofences() {
+    void unRegisterAllGeofences() {
         if (mGoogleApiClient == null || !mGoogleApiClient.isConnected()) {
             return;
         }
@@ -152,13 +146,7 @@ public class Geofencing implements ResultCallback {
         mGeofencePendingIntent = PendingIntent.getBroadcast(mContext, 0, intent, PendingIntent.
                 FLAG_UPDATE_CURRENT);
 
-        /*long futureInMillis = SystemClock.elapsedRealtime() + delay;
-        AlarmManager alarmManager = (AlarmManager)mContext.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, futureInMillis, mGeofencePendingIntent);*/
-
-
         return mGeofencePendingIntent;
-
     }
 
     @Override

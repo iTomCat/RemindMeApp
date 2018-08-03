@@ -1,7 +1,6 @@
 package com.example.tomcat.remindmeapp;
 
 import android.app.Activity;
-import android.database.Cursor;
 
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
@@ -30,7 +29,6 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
     private final ReminderAdapterOnClickHandler mClickHandler;
     private Activity activity;
     private List<Reminder> mRemindersData;
-    private Cursor mCursor;
 
     ReminderAdapter(Activity activity, ReminderAdapterOnClickHandler clickHandler) {
         this.activity = activity;
@@ -97,7 +95,7 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
 
         String currPlaceID = mRemindersData.get(position).getPlaceID();
         String placeName = AppContentProvider.getPlaceNameBasedGoogleID(activity, currPlaceID);
-        int txtColor = activity.getResources().getColor(R.color.colorPrimary);;
+        int txtColor = activity.getResources().getColor(R.color.colorPrimary);
         String placeDescr = null;
         int icon = R.drawable.ic_icon_out;
 

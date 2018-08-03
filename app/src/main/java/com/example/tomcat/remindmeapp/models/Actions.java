@@ -4,7 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * ActionsModel
+ * Actions Model
  */
 
 public class Actions implements Parcelable {
@@ -13,9 +13,7 @@ public class Actions implements Parcelable {
     private String smsNumber;
     private String smsMessage;
 
-
     public Actions(){
-
     }
 
     private Actions(Parcel in) {

@@ -15,7 +15,7 @@ public class RemindersDb extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
 
     // --------------------------------------------------------------------------------- Constructor
-    public RemindersDb(Context context) {
+    RemindersDb(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 

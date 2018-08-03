@@ -55,7 +55,6 @@
             android:id="@+id/text_input_place_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/sms_message_txt"
             android:textSize="24sp"
             app:hintTextAppearance="@color/colorPrimary" />
     </android.support.design.widget.TextInputLayout>
