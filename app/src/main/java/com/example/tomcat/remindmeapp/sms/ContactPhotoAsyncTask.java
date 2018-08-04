@@ -1,8 +1,6 @@
 package com.example.tomcat.remindmeapp.sms;
 
-
 import android.content.ContentResolver;
-
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -15,7 +13,6 @@ import android.widget.ImageView;
 import com.example.tomcat.remindmeapp.R;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
-
 
 class ContactPhotoAsyncTask extends AsyncTask<String, Void, Bitmap> {
     private ContentResolver contentResolver;
