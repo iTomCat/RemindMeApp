@@ -41,6 +41,7 @@
 
 
         <receiver android:name=".widget.RemindersWidget">
+            android:enabled="true"
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
