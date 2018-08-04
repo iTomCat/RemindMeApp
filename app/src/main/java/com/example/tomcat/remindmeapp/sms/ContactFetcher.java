@@ -21,6 +21,7 @@ class ContactFetcher {
         String[] projectionFields = new String[]{
                 ContactsContract.Contacts._ID,
                 ContactsContract.Contacts.DISPLAY_NAME,
+                ContactsContract.Contacts.PHOTO_URI
         };
         ArrayList<Contact> listContacts = new ArrayList<>();
         CursorLoader cursorLoader = new CursorLoader(context,
@@ -39,11 +40,13 @@ class ContactFetcher {
 
             int idIndex = c.getColumnIndex(ContactsContract.Contacts._ID);
             int nameIndex = c.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME);
+            int photoIndex = c.getColumnIndex(ContactsContract.Contacts.PHOTO_URI);
 
             do {
                 String contactId = c.getString(idIndex);
                 String contactDisplayName = c.getString(nameIndex);
-                Contact contact = new Contact(contactId, contactDisplayName);
+                String photo = c.getString(photoIndex);
+                Contact contact = new Contact(contactId, contactDisplayName, photo);
                 contactsMap.put(contactId, contact);
                 listContacts.add(contact);
             } while (c.moveToNext());
@@ -61,6 +64,7 @@ class ContactFetcher {
                 ContactsContract.CommonDataKinds.Phone.NUMBER,
                 ContactsContract.CommonDataKinds.Phone.TYPE,
                 ContactsContract.CommonDataKinds.Phone.CONTACT_ID,
+                ContactsContract.CommonDataKinds.Phone.PHOTO_URI
         };
 
         Cursor phone = new CursorLoader(context,
@@ -74,10 +78,12 @@ class ContactFetcher {
             final int contactNumberColumnIndex = phone.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
             final int contactTypeColumnIndex = phone.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE);
             final int contactIdColumnIndex = phone.getColumnIndex(ContactsContract.CommonDataKinds.Phone.CONTACT_ID);
+            final int photoColumnIndex = phone.getColumnIndex(ContactsContract.CommonDataKinds.Phone.PHOTO_URI);
 
             while (!phone.isAfterLast()) {
                 final String number = phone.getString(contactNumberColumnIndex);
                 final String contactId = phone.getString(contactIdColumnIndex);
+                final String photo = phone.getString(photoColumnIndex);
                 Contact contact = contactsMap.get(contactId);
                 if (contact == null) {
                     continue;

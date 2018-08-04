@@ -6,11 +6,13 @@ import java.util.ArrayList;
 public class Contact {
     public String id;
     public String name;
+    public String photo;
     ArrayList<ContactPhone> numbers;
 
-    Contact(String id, String name) {
+    Contact(String id, String name, String photo) {
         this.id = id;
         this.name = name;
+        this.photo = photo;
         this.numbers = new ArrayList<>();
     }
 
