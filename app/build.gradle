@@ -5,7 +5,7 @@ android {
         config {
             keyAlias 'mykeycapstone'
             keyPassword 'passforCapstone'
-            storeFile file('capstkey/mykey2.jks')
+            storeFile file('/capstkey/mykey2.jks')
             storePassword 'passforCapstone2'
         }
     }
